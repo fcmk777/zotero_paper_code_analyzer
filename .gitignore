@@ -1,0 +1,22 @@
+# dot files
+.DS_Store
+
+# Claude Code session state
+.claude/
+
+# Node.js
+node_modules
+pnpm-lock.yaml
+yarn.lock
+
+# TSC
+tsconfig.tsbuildinfo
+
+# Scaffold
+.env
+.scaffold
+build
+logs
+
+# Release artifacts
+*.xpi

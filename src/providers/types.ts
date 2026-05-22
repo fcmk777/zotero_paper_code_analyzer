@@ -1,0 +1,114 @@
+import type { AgentPermissionMode, ModelPreset } from '../settings/types';
+import type { MessageContext } from '../context/types';
+import type { ToolSettings } from '../settings/tool-settings';
+
+export type MessageRole = 'user' | 'assistant';
+
+export interface Message {
+  role: MessageRole;
+  content: string;
+  apiContent?: string;
+  thinking?: string;
+  images?: MessageImage[];
+  context?: MessageContext;
+  annotationDraft?: AssistantAnnotationDraft;
+  task?: ChatTaskMeta;
+}
+
+export type ChatTaskKind = 'general' | 'selection' | 'full_text';
+
+export interface ChatTaskMeta {
+  id: string;
+  kind: ChatTaskKind;
+  title: string;
+  promptPreview: string;
+  createdAt: number;
+  completedAt?: number;
+  viewedAt?: number;
+  hiddenAt?: number;
+  cancelledAt?: number;
+  error?: string;
+  pdfSelection?: PdfSelectionLocator;
+}
+
+export interface PdfSelectionLocator {
+  attachmentID: number;
+  selectedText: string;
+  pageIndex?: number;
+  pageLabel?: string;
+  position: Record<string, unknown>;
+}
+
+export interface AssistantAnnotationDraft {
+  comment: string;
+  color?: string;
+  snapshot: {
+    text: string;
+    attachmentID: number;
+    annotation: Record<string, unknown>;
+  };
+  state: AssistantAnnotationDraftState;
+  textState?: AssistantAnnotationDraftState;
+}
+
+export type AssistantAnnotationDraftState =
+  | { kind: 'idle' }
+  | { kind: 'saving' }
+  | { kind: 'saved'; annotationID: number; savedAt: number }
+  | { kind: 'failed'; error: string };
+
+export interface MessageImage {
+  id: string;
+  marker?: string;
+  name: string;
+  mediaType: string;
+  dataUrl: string;
+  size: number;
+}
+
+export interface ToolExecutionResult {
+  output: string;
+  summary?: string;
+  context?: MessageContext;
+}
+
+export interface AgentTool {
+  name: string;
+  description: string;
+  parameters: { [key: string]: unknown };
+  requiresApproval?: boolean;
+  execute(args: unknown): Promise<ToolExecutionResult>;
+}
+
+export interface ProviderStreamOptions {
+  tools?: AgentTool[];
+  maxToolIterations?: number;
+  permissionMode?: AgentPermissionMode;
+  toolSettings?: ToolSettings;
+}
+
+export type StreamChunk =
+  | { type: 'status'; message: string }
+  | { type: 'text_delta'; text: string }
+  | { type: 'thinking_delta'; text: string }
+  | {
+      type: 'tool_call';
+      name: string;
+      status: 'started' | 'completed' | 'error';
+      summary?: string;
+      context?: MessageContext;
+    }
+  | { type: 'usage'; input: number; output: number; cacheRead?: number }
+  | { type: 'error'; message: string };
+
+export interface Provider {
+  stream(
+    messages: Message[],
+    systemPrompt: string,
+    preset: ModelPreset,
+    signal: AbortSignal,
+    options?: ProviderStreamOptions,
+  ): AsyncIterable<StreamChunk>;
+}
+
+export type ProviderFactory = (preset: ModelPreset) => Provider;
