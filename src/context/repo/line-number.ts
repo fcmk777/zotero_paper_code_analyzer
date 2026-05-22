@@ -16,7 +16,10 @@ export interface NumberedFileSlice {
 export function withLineNumbers(content: string, startLine = 1): string {
   const lines = normalizeNewlines(content).split("\n");
   return lines
-    .map((line, index) => `${String(startLine + index).padStart(4, " ")} | ${line}`)
+    .map(
+      (line, index) =>
+        `${String(startLine + index).padStart(4, " ")} | ${line}`,
+    )
     .join("\n");
 }
 
@@ -51,7 +54,9 @@ export function readFileSliceWithLineNumbers(
     numbered = withLineNumbers(slice.join("\n"), safeStart);
     truncated = true;
   }
-  const returnedEnd = slice.length ? safeStart + slice.length - 1 : safeStart - 1;
+  const returnedEnd = slice.length
+    ? safeStart + slice.length - 1
+    : safeStart - 1;
   const language = languageForPath(path);
   const contentMarkdown = [
     `### ${path}`,

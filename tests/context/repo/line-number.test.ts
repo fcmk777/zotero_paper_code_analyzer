@@ -7,7 +7,9 @@ import { DEFAULT_REPO_POLICY } from "../../../src/context/repo/repo-policy";
 
 describe("line numbering", () => {
   it("formats stable line prefixes", () => {
-    const numbered = withLineNumbers(Array.from({ length: 10 }, (_, i) => `L${i + 1}`).join("\n"));
+    const numbered = withLineNumbers(
+      Array.from({ length: 10 }, (_, i) => `L${i + 1}`).join("\n"),
+    );
 
     expect(numbered.split("\n")[0]).toBe("   1 | L1");
     expect(numbered.split("\n")[9]).toBe("  10 | L10");

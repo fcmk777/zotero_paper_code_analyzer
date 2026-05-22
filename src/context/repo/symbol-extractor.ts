@@ -103,11 +103,17 @@ function extractJavaScriptSymbols(content: string): RepoSymbol[] {
         line: lineNo,
       });
     }
-    const cls = line.match(/(?:export\s+default\s+|export\s+)?class\s+([A-Za-z_$][\w$]*)/);
+    const cls = line.match(
+      /(?:export\s+default\s+|export\s+)?class\s+([A-Za-z_$][\w$]*)/,
+    );
     if (cls) symbols.push({ kind: "class", name: cls[1], line: lineNo });
-    const fn = line.match(/(?:export\s+)?(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/);
+    const fn = line.match(
+      /(?:export\s+)?(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/,
+    );
     if (fn) symbols.push({ kind: "function", name: fn[1], line: lineNo });
-    const arrow = line.match(/(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>/);
+    const arrow = line.match(
+      /(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>/,
+    );
     if (arrow) symbols.push({ kind: "function", name: arrow[1], line: lineNo });
   });
   return symbols;
@@ -123,7 +129,9 @@ function extractConfigSymbols(path: string, content: string): RepoSymbol[] {
           .slice(0, MAX_SYMBOLS_PER_FILE)
           .map((key) => ({ kind: "config_key", name: key, line: 1 }));
       }
-    } catch {}
+    } catch {
+      // Non-JSON config files fall through to line-based key extraction.
+    }
   }
   return normalizeNewlines(content)
     .split("\n")
@@ -145,7 +153,7 @@ function extractNotebookSymbols(content: string): RepoSymbol[] {
     parsed.cells.forEach((cell, index) => {
       const source = Array.isArray(cell.source)
         ? cell.source.join("")
-        : cell.source ?? "";
+        : (cell.source ?? "");
       if (cell.cell_type === "markdown") {
         const heading = source
           .split(/\r?\n/)
@@ -181,9 +189,13 @@ function extractNotebookSymbols(content: string): RepoSymbol[] {
 
 function summarizeSymbols(path: string, symbols: RepoSymbol[]): string {
   const classes = symbols.filter((symbol) => symbol.kind === "class").length;
-  const functions = symbols.filter((symbol) => symbol.kind === "function").length;
+  const functions = symbols.filter(
+    (symbol) => symbol.kind === "function",
+  ).length;
   const imports = symbols.filter((symbol) => symbol.kind === "import").length;
-  const configKeys = symbols.filter((symbol) => symbol.kind === "config_key").length;
+  const configKeys = symbols.filter(
+    (symbol) => symbol.kind === "config_key",
+  ).length;
   return `symbols: classes=${classes}, functions=${functions}, imports=${imports}, configKeys=${configKeys}, total=${symbols.length} in ${path}`;
 }
 

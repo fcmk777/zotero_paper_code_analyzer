@@ -86,9 +86,10 @@ function valid(
   };
 }
 
-function splitBlobRefAndPath(
-  segments: string[],
-): { ref?: string; sourcePath?: string } {
+function splitBlobRefAndPath(segments: string[]): {
+  ref?: string;
+  sourcePath?: string;
+} {
   if (!segments.length) return {};
   for (let split = 1; split < segments.length; split++) {
     const path = segments.slice(split).join("/");
@@ -137,13 +138,9 @@ function looksLikeSourcePath(path: string): boolean {
   const basename = path.split("/").pop()?.toLowerCase() ?? "";
   if (!basename) return false;
   if (basename.includes(".")) return true;
-  return [
-    "dockerfile",
-    "makefile",
-    "readme",
-    "license",
-    "requirements",
-  ].some((name) => basename === name || basename.startsWith(`${name}.`));
+  return ["dockerfile", "makefile", "readme", "license", "requirements"].some(
+    (name) => basename === name || basename.startsWith(`${name}.`),
+  );
 }
 
 function stripGitSuffix(repo: string): string {

@@ -26,7 +26,11 @@ describe("classifyRepoFile", () => {
   it.each(["docs/example.py", "examples/demo.py", "node_modules/foo.js"])(
     "skips noisy paths %s",
     (path) => {
-      const result = classifyRepoFile(path, enc.encode("print('x')"), DEFAULT_REPO_POLICY);
+      const result = classifyRepoFile(
+        path,
+        enc.encode("print('x')"),
+        DEFAULT_REPO_POLICY,
+      );
 
       expect(result.meta.isSkipped).toBe(true);
       expect(result.meta.skipReason).toMatch(/ignored_dir/);

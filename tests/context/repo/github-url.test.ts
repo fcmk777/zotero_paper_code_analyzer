@@ -7,8 +7,16 @@ describe("normalizeGitHubRepoUrl", () => {
     ["https://github.com/owner/repo.git", undefined, undefined],
     ["git@github.com:owner/repo.git", undefined, undefined],
     ["https://github.com/owner/repo/tree/main", "main", undefined],
-    ["https://github.com/owner/repo/tree/feature/abc", "feature/abc", undefined],
-    ["https://github.com/owner/repo/blob/main/src/model.py", "main", "src/model.py"],
+    [
+      "https://github.com/owner/repo/tree/feature/abc",
+      "feature/abc",
+      undefined,
+    ],
+    [
+      "https://github.com/owner/repo/blob/main/src/model.py",
+      "main",
+      "src/model.py",
+    ],
     [
       "https://github.com/owner/repo/blob/feature/abc/src/model.py",
       "feature/abc",

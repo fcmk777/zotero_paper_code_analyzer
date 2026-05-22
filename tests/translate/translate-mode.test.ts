@@ -1,27 +1,29 @@
-import { describe, expect, it, vi } from 'vitest';
-import { TranslateModeController } from '../../src/translate/translate-mode';
-import type { PrefsStore } from '../../src/settings/storage';
+import { describe, expect, it, vi } from "vitest";
+import { TranslateModeController } from "../../src/translate/translate-mode";
+import type { PrefsStore } from "../../src/settings/storage";
 
-function prefs(triggerMode: 'single' | 'double'): PrefsStore {
+function prefs(triggerMode: "single" | "double"): PrefsStore {
   return {
-    get: (key) => key.endsWith('.translateSettings')
-      ? JSON.stringify({ triggerMode })
-      : undefined,
+    get: (key) =>
+      key.endsWith(".translateSettings")
+        ? JSON.stringify({ triggerMode })
+        : undefined,
     set: () => undefined,
   };
 }
 
-function readyController(triggerMode: 'single' | 'double') {
+function readyController(triggerMode: "single" | "double") {
   const ctrl = new TranslateModeController({
     prefs: prefs(triggerMode),
     presets: [],
     reader: {},
   }) as unknown as Record<string, any>;
-  const page = document.createElement('div');
-  page.className = 'page';
+  const page = document.createElement("div");
+  page.className = "page";
   document.body.append(page);
-  document.body.classList.add('zai-translate-mode-on');
-  (document as Document & { elementsFromPoint?: unknown }).elementsFromPoint = () => [page];
+  document.body.classList.add("zai-translate-mode-on");
+  (document as Document & { elementsFromPoint?: unknown }).elementsFromPoint =
+    () => [page];
   ctrl.active = true;
   ctrl.boundWindow = window;
   ctrl.locator = {};
@@ -31,7 +33,7 @@ function readyController(triggerMode: 'single' | 'double') {
 }
 
 function mouseUpAt(x = 10, y = 10): MouseEvent {
-  return new MouseEvent('mouseup', {
+  return new MouseEvent("mouseup", {
     button: 0,
     clientX: x,
     clientY: y,
@@ -39,9 +41,9 @@ function mouseUpAt(x = 10, y = 10): MouseEvent {
   });
 }
 
-describe('TranslateModeController trigger routing', () => {
-  it('activates immediately on pointerup in single-click mode', () => {
-    const { ctrl, page } = readyController('single');
+describe("TranslateModeController trigger routing", () => {
+  it("activates immediately on pointerup in single-click mode", () => {
+    const { ctrl, page } = readyController("single");
     const ev = mouseUpAt();
     page.dispatchEvent(ev);
 
@@ -52,8 +54,8 @@ describe('TranslateModeController trigger routing', () => {
     page.remove();
   });
 
-  it('waits for the second pointerup in double-click mode', () => {
-    const { ctrl, page } = readyController('double');
+  it("waits for the second pointerup in double-click mode", () => {
+    const { ctrl, page } = readyController("double");
     const first = mouseUpAt();
     page.dispatchEvent(first);
     ctrl.handleTranslatePointerUp(first);
@@ -68,18 +70,21 @@ describe('TranslateModeController trigger routing', () => {
     page.remove();
   });
 
-  it('routes Enter and Shift+Enter to next and previous sentence', () => {
-    const { ctrl, page } = readyController('single');
+  it("routes Enter and Shift+Enter to next and previous sentence", () => {
+    const { ctrl, page } = readyController("single");
     ctrl.current = { pageSentenceIndex: 1, pageSentenceCount: 3 };
     ctrl.jump = vi.fn();
 
-    const next = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
+    const next = new KeyboardEvent("keydown", {
+      key: "Enter",
+      cancelable: true,
+    });
     ctrl.handleKey(next);
     expect(ctrl.jump).toHaveBeenCalledWith(1);
     expect(next.defaultPrevented).toBe(true);
 
-    const prev = new KeyboardEvent('keydown', {
-      key: 'Enter',
+    const prev = new KeyboardEvent("keydown", {
+      key: "Enter",
       shiftKey: true,
       cancelable: true,
     });
@@ -89,34 +94,34 @@ describe('TranslateModeController trigger routing', () => {
     page.remove();
   });
 
-  it('jumps using the locator sentence index from the original PDF chars', async () => {
-    const { ctrl, page } = readyController('single');
+  it("jumps using the locator sentence index from the original PDF chars", async () => {
+    const { ctrl, page } = readyController("single");
     const bundle = {
       pageIndex: 0,
-      pageLabel: '1',
-      pageText: 'First. Second.',
-      normalizedText: 'first. second.',
+      pageLabel: "1",
+      pageText: "First. Second.",
+      normalizedText: "first. second.",
       normalizedToOriginal: Array.from({ length: 14 }, (_, index) => index),
     };
     const located = {
-      text: 'Second.',
+      text: "Second.",
       pageIndex: 0,
-      pageLabel: '1',
+      pageLabel: "1",
       rects: [[10, 10, 50, 20]],
-      sortIndex: '00000|000007|00010',
+      sortIndex: "00000|000007|00010",
       pageSentenceIndex: 1,
       pageSentenceCount: 2,
-      paragraphContext: 'First. Second.',
+      paragraphContext: "First. Second.",
     };
     ctrl.current = {
-      text: 'First.',
+      text: "First.",
       pageIndex: 0,
-      pageLabel: '1',
+      pageLabel: "1",
       rects: [[0, 10, 40, 20]],
-      sortIndex: '00000|000000|00010',
+      sortIndex: "00000|000000|00010",
       pageSentenceIndex: 0,
       pageSentenceCount: 2,
-      paragraphContext: 'First. Second.',
+      paragraphContext: "First. Second.",
       bundle,
     };
     ctrl.locator = {
@@ -128,7 +133,7 @@ describe('TranslateModeController trigger routing', () => {
     await ctrl.jump(1);
 
     expect(ctrl.locator.sentenceAtIndex).toHaveBeenCalledWith(0, 1);
-    expect(ctrl.current.text).toBe('Second.');
+    expect(ctrl.current.text).toBe("Second.");
     expect(ctrl.current.bundle).toBe(bundle);
     expect(ctrl.renderForCurrent).toHaveBeenCalledTimes(1);
     page.remove();

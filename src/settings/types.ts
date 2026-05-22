@@ -1,7 +1,13 @@
-export type ProviderKind = 'anthropic' | 'openai';
-export type ReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
-export type ReasoningSummary = 'auto' | 'concise' | 'detailed' | 'none';
-export type AgentPermissionMode = 'default' | 'yolo';
+export type ProviderKind = "anthropic" | "openai";
+export type ReasoningEffort =
+  | "none"
+  | "minimal"
+  | "low"
+  | "medium"
+  | "high"
+  | "xhigh";
+export type ReasoningSummary = "auto" | "concise" | "detailed" | "none";
+export type AgentPermissionMode = "default" | "yolo";
 // Vendor distinguishes who actually answers an Anthropic-protocol request.
 // Same Messages API, different thinking-mode dialects:
 //   claude   = Anthropic Claude (real or reverse-proxied) — adaptive vs
@@ -11,7 +17,7 @@ export type AgentPermissionMode = 'default' | 'yolo';
 //              {thinking: {type: "enabled"}} + {output_config.effort}.
 //   compat   = unknown third-party proxy — never send `thinking` so an
 //              endpoint that doesn't recognize the field can't 400.
-export type AnthropicVendor = 'claude' | 'deepseek' | 'compat';
+export type AnthropicVendor = "claude" | "deepseek" | "compat";
 
 export interface ModelPreset {
   id: string;
@@ -37,7 +43,7 @@ export interface ModelPreset {
     // Auto-detected during connectivity test: endpoint rejected reasoning.effort
     // so fall back to Chat Completions for all requests on this preset.
     openaiUseChatCompletions?: boolean;
-    testStatus?: 'ok' | 'failed';
+    testStatus?: "ok" | "failed";
     // Anthropic-only — written by storage normalize / preset UI:
     vendor?: AnthropicVendor;
     // Translate-only signal — written by translator just before stream(),
@@ -50,13 +56,13 @@ export interface ModelPreset {
 }
 
 export const DEFAULT_BASE_URLS: Record<ProviderKind, string> = {
-  anthropic: '',
-  openai: '',
+  anthropic: "",
+  openai: "",
 };
 
 export const DEFAULT_MODELS: Record<ProviderKind, string> = {
-  anthropic: '',
-  openai: '',
+  anthropic: "",
+  openai: "",
 };
 
 // =================================================================
@@ -83,33 +89,33 @@ export const DEFAULT_MODELS: Record<ProviderKind, string> = {
 //                    reject xhigh and translator promotes it to `max`.
 export interface ModelDescriptor {
   id: string;
-  thinkingDialect?: 'adaptive' | 'enabled';
+  thinkingDialect?: "adaptive" | "enabled";
   acceptsXhigh?: boolean;
 }
 
-export const MODEL_CATALOG: Record<'openai' | AnthropicVendor, ModelDescriptor[]> = {
+export const MODEL_CATALOG: Record<
+  "openai" | AnthropicVendor,
+  ModelDescriptor[]
+> = {
   openai: [
-    { id: 'gpt-5.5' },
-    { id: 'gpt-5.4' },
-    { id: 'gpt-5.4-mini' },
-    { id: 'gpt-5.3-codex' },
-    { id: 'gpt-5.2' },
+    { id: "gpt-5.5" },
+    { id: "gpt-5.4" },
+    { id: "gpt-5.4-mini" },
+    { id: "gpt-5.3-codex" },
+    { id: "gpt-5.2" },
   ],
   claude: [
-    { id: 'claude-opus-4-7',           thinkingDialect: 'adaptive', acceptsXhigh: true },
-    { id: 'claude-opus-4-6',           thinkingDialect: 'adaptive' },
-    { id: 'claude-sonnet-4-6',         thinkingDialect: 'adaptive' },
-    { id: 'claude-haiku-4-5-20251001', thinkingDialect: 'enabled'  },
+    { id: "claude-opus-4-7", thinkingDialect: "adaptive", acceptsXhigh: true },
+    { id: "claude-opus-4-6", thinkingDialect: "adaptive" },
+    { id: "claude-sonnet-4-6", thinkingDialect: "adaptive" },
+    { id: "claude-haiku-4-5-20251001", thinkingDialect: "enabled" },
   ],
-  deepseek: [
-    { id: 'deepseek-v4-flash' },
-    { id: 'deepseek-v4-pro' },
-  ],
+  deepseek: [{ id: "deepseek-v4-flash" }, { id: "deepseek-v4-pro" }],
   compat: [],
 };
 
 // Derived view: id-only suggestion lists (the preset card chip-row reads this).
-export const MODEL_SUGGESTIONS: Record<'openai' | AnthropicVendor, string[]> = {
+export const MODEL_SUGGESTIONS: Record<"openai" | AnthropicVendor, string[]> = {
   openai: MODEL_CATALOG.openai.map((m) => m.id),
   claude: MODEL_CATALOG.claude.map((m) => m.id),
   deepseek: MODEL_CATALOG.deepseek.map((m) => m.id),
@@ -126,49 +132,50 @@ export function findClaudeDescriptor(model: string): ModelDescriptor {
   if (/(opus-4-7|opus-4-6|sonnet-4-6|mythos)/i.test(model)) {
     return {
       id: model,
-      thinkingDialect: 'adaptive',
+      thinkingDialect: "adaptive",
       acceptsXhigh: /opus-4-7/i.test(model),
     };
   }
-  return { id: model, thinkingDialect: 'enabled' };
+  return { id: model, thinkingDialect: "enabled" };
 }
 
-export const DEFAULT_REASONING_EFFORT: ReasoningEffort = 'xhigh';
-export const DEFAULT_REASONING_SUMMARY: ReasoningSummary = 'concise';
+export const DEFAULT_REASONING_EFFORT: ReasoningEffort = "xhigh";
+export const DEFAULT_REASONING_SUMMARY: ReasoningSummary = "concise";
 
 export const REASONING_EFFORT_OPTIONS: Array<[ReasoningEffort, string]> = [
-  ['low', 'Low - 快速，较少推理'],
-  ['medium', 'Medium - 默认平衡'],
-  ['high', 'High - 更强推理'],
-  ['xhigh', 'Extra high - 最强推理'],
+  ["low", "Low - 快速，较少推理"],
+  ["medium", "Medium - 默认平衡"],
+  ["high", "High - 更强推理"],
+  ["xhigh", "Extra high - 最强推理"],
 ];
 
 export const REASONING_SUMMARY_OPTIONS: Array<[ReasoningSummary, string]> = [
-  ['concise', 'Concise - 简短显示思考摘要'],
-  ['detailed', 'Detailed - 更详细的思考摘要'],
-  ['auto', 'Auto - 由模型决定'],
-  ['none', 'None - 不显示思考'],
+  ["concise", "Concise - 简短显示思考摘要"],
+  ["detailed", "Detailed - 更详细的思考摘要"],
+  ["auto", "Auto - 由模型决定"],
+  ["none", "None - 不显示思考"],
 ];
 
 export function newPreset(provider: ProviderKind): ModelPreset {
   const defaultModel = DEFAULT_MODELS[provider];
   return {
     id: crypto.randomUUID(),
-    label: provider === 'anthropic' ? 'Claude' : 'GPT',
+    label: provider === "anthropic" ? "Claude" : "GPT",
     provider,
-    apiKey: '',
+    apiKey: "",
     baseUrl: DEFAULT_BASE_URLS[provider],
     model: defaultModel,
     models: defaultModel ? [defaultModel] : [],
     maxTokens: 8192,
-    extras: provider === 'openai'
-      ? {
-          reasoningEffort: DEFAULT_REASONING_EFFORT,
-          reasoningSummary: DEFAULT_REASONING_SUMMARY,
-        }
-      // Anthropic default: 'high' is Anthropic's recommended adaptive
-      // effort and a sensible default for older enabled-mode budgets.
-      : { reasoningEffort: 'high' },
+    extras:
+      provider === "openai"
+        ? {
+            reasoningEffort: DEFAULT_REASONING_EFFORT,
+            reasoningSummary: DEFAULT_REASONING_SUMMARY,
+          }
+        : // Anthropic default: 'high' is Anthropic's recommended adaptive
+          // effort and a sensible default for older enabled-mode budgets.
+          { reasoningEffort: "high" },
   };
 }
 
@@ -178,11 +185,11 @@ export function newPreset(provider: ProviderKind): ModelPreset {
 //   Claude (任一 dialect) → 不发 thinking 字段（Claude 默认就是不思考）
 //   DeepSeek       → thinking: {type: "disabled"}（DeepSeek 默认是 enabled，必须显式关）
 //   compat         → 维持原有"不发"行为
-export type TranslateThinking = 'off' | 'low' | 'medium' | 'high' | 'xhigh';
-export type TranslateContextLevel = 'none' | 'paragraph' | 'page';
-export type TranslateOverlayPosition = 'above' | 'below';
-export type TranslateTriggerMode = 'single' | 'double';
-export type TranslateOverlaySize = 'compact' | 'adaptive';
+export type TranslateThinking = "off" | "low" | "medium" | "high" | "xhigh";
+export type TranslateContextLevel = "none" | "paragraph" | "page";
+export type TranslateOverlayPosition = "above" | "below";
+export type TranslateTriggerMode = "single" | "double";
+export type TranslateOverlaySize = "compact" | "adaptive";
 
 export interface TranslateSettings {
   enabled: boolean;
@@ -199,13 +206,13 @@ export interface TranslateSettings {
 
 export const DEFAULT_TRANSLATE_SETTINGS: TranslateSettings = {
   enabled: false,
-  presetId: '',
-  model: '',
-  thinking: 'low',
-  ctxLevel: 'none',
-  overlayPosition: 'above',
-  overlaySize: 'compact',
-  triggerMode: 'single',
-  prevSentenceKey: 'Shift+Enter',
-  nextSentenceKey: 'Enter',
+  presetId: "",
+  model: "",
+  thinking: "low",
+  ctxLevel: "none",
+  overlayPosition: "above",
+  overlaySize: "compact",
+  triggerMode: "single",
+  prevSentenceKey: "Shift+Enter",
+  nextSentenceKey: "Enter",
 };

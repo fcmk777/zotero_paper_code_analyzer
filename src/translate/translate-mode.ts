@@ -53,9 +53,11 @@ export class TranslateModeController {
   private abortCtrl: AbortController | null = null;
   private boundWindow: Window | null = null;
   private pointerStart: { x: number; y: number } | null = null;
-  private pendingDoubleClick: { at: number; x: number; y: number } | null = null;
+  private pendingDoubleClick: { at: number; x: number; y: number } | null =
+    null;
   private lastActivation: { at: number; x: number; y: number } | null = null;
-  private lastDoubleActivation: { at: number; x: number; y: number } | null = null;
+  private lastDoubleActivation: { at: number; x: number; y: number } | null =
+    null;
   private active = false;
 
   constructor(private ctx: TranslateModeContext) {}
@@ -158,22 +160,42 @@ export class TranslateModeController {
   disable(): void {
     this.active = false;
     if (this.boundWindow && this.pointerDownHandler) {
-      this.boundWindow.removeEventListener("pointerdown", this.pointerDownHandler, true);
+      this.boundWindow.removeEventListener(
+        "pointerdown",
+        this.pointerDownHandler,
+        true,
+      );
     }
     if (this.boundWindow && this.mouseDownHandler) {
-      this.boundWindow.removeEventListener("mousedown", this.mouseDownHandler, true);
+      this.boundWindow.removeEventListener(
+        "mousedown",
+        this.mouseDownHandler,
+        true,
+      );
     }
     if (this.boundWindow && this.pointerUpHandler) {
-      this.boundWindow.removeEventListener("pointerup", this.pointerUpHandler, true);
+      this.boundWindow.removeEventListener(
+        "pointerup",
+        this.pointerUpHandler,
+        true,
+      );
     }
     if (this.boundWindow && this.mouseUpHandler) {
-      this.boundWindow.removeEventListener("mouseup", this.mouseUpHandler, true);
+      this.boundWindow.removeEventListener(
+        "mouseup",
+        this.mouseUpHandler,
+        true,
+      );
     }
     if (this.boundWindow && this.clickHandler) {
       this.boundWindow.removeEventListener("click", this.clickHandler, true);
     }
     if (this.boundWindow && this.dblClickHandler) {
-      this.boundWindow.removeEventListener("dblclick", this.dblClickHandler, true);
+      this.boundWindow.removeEventListener(
+        "dblclick",
+        this.dblClickHandler,
+        true,
+      );
     }
     if (this.keyHandler) {
       for (const keyWin of this.keyWindows) {
@@ -308,10 +330,13 @@ export class TranslateModeController {
       void this.handleActivation(clientX, clientY, false);
       return;
     }
-    win.setTimeout(() => {
-      if (!this.isEnabled() || this.boundWindow !== win) return;
-      void this.handleActivation(clientX, clientY, preferSelection);
-    }, delayMs > 0 ? delayMs : SELECTION_STABILIZE_DELAY_MS);
+    win.setTimeout(
+      () => {
+        if (!this.isEnabled() || this.boundWindow !== win) return;
+        void this.handleActivation(clientX, clientY, preferSelection);
+      },
+      delayMs > 0 ? delayMs : SELECTION_STABILIZE_DELAY_MS,
+    );
   }
 
   private isDuplicateActivation(ev: MouseEvent): boolean {
@@ -477,7 +502,9 @@ export class TranslateModeController {
       `.page[data-page-number="${current.pageIndex + 1}"]`,
     ) as HTMLElement | null;
     if (!pageEl) {
-      debugLog("renderForCurrent missing pageEl", { pageIndex: current.pageIndex });
+      debugLog("renderForCurrent missing pageEl", {
+        pageIndex: current.pageIndex,
+      });
       return;
     }
 
@@ -540,7 +567,9 @@ export class TranslateModeController {
       thinking: settings.thinking,
       ctxLevel: settings.ctxLevel,
     });
-    const cached = forceRefresh ? undefined : getCachedTranslation(this.ctx.prefs, key);
+    const cached = forceRefresh
+      ? undefined
+      : getCachedTranslation(this.ctx.prefs, key);
     if (cached) {
       debugLog("translation cache hit", {
         createdAt: cached.createdAt,
@@ -586,7 +615,11 @@ export class TranslateModeController {
           debugLog("translation chunk error", { message: chunk.message });
           overlay.setError(chunk.message);
         } else if (chunk.type === "usage") {
-          usageLabel = formatUsageLabel(chunk.input, chunk.output, chunk.cacheRead);
+          usageLabel = formatUsageLabel(
+            chunk.input,
+            chunk.output,
+            chunk.cacheRead,
+          );
           debugLog("translation usage", {
             input: chunk.input,
             output: chunk.output,
@@ -673,7 +706,6 @@ export class TranslateModeController {
     this.current = null;
   }
 }
-
 
 function keyEventWindows(win: Window): Window[] {
   const out: Window[] = [];

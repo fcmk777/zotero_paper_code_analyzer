@@ -1,7 +1,4 @@
-import {
-  codeError,
-  type CodeResult,
-} from "../context/code-github";
+import { codeError, type CodeResult } from "../context/code-github";
 import { profileFilePath } from "./profile-path";
 
 export interface CodeRepoBinding {
@@ -86,25 +83,29 @@ export function saveCodeRepoBinding(
   options: StorageOptions = {},
 ): Promise<CodeResult<{ binding: CodeRepoBinding }>> {
   if (itemID == null) {
-    return Promise.resolve(codeError("NO_CURRENT_ITEM", "当前没有选中的 Zotero 条目。"));
+    return Promise.resolve(
+      codeError("NO_CURRENT_ITEM", "当前没有选中的 Zotero 条目。"),
+    );
   }
   const now = options.now?.() ?? Date.now();
   let saved: CodeRepoBinding | null = null;
-  writeQueue = writeQueue.catch(() => undefined).then(async () => {
-    const stored = await readStored();
-    const existing = normalizeRepoBinding(stored[bindingKey(itemID)]);
-    saved = {
-      itemID,
-      githubUrl: input.githubUrl,
-      owner: input.owner,
-      repo: input.repo,
-      ...(input.branch ? { branch: input.branch } : {}),
-      createdAt: existing?.createdAt ?? now,
-      updatedAt: now,
-    };
-    stored[bindingKey(itemID)] = saved;
-    await writeStored(stored);
-  });
+  writeQueue = writeQueue
+    .catch(() => undefined)
+    .then(async () => {
+      const stored = await readStored();
+      const existing = normalizeRepoBinding(stored[bindingKey(itemID)]);
+      saved = {
+        itemID,
+        githubUrl: input.githubUrl,
+        owner: input.owner,
+        repo: input.repo,
+        ...(input.branch ? { branch: input.branch } : {}),
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
+      };
+      stored[bindingKey(itemID)] = saved;
+      await writeStored(stored);
+    });
   return writeQueue
     .then(() => ({ ok: true, binding: saved! }) as const)
     .catch((err) =>
@@ -139,27 +140,31 @@ export function saveCodeAnalysis(
   options: StorageOptions = {},
 ): Promise<CodeResult<{ analysis: CodeAnalysisRecord }>> {
   if (itemID == null) {
-    return Promise.resolve(codeError("NO_CURRENT_ITEM", "当前没有选中的 Zotero 条目。"));
+    return Promise.resolve(
+      codeError("NO_CURRENT_ITEM", "当前没有选中的 Zotero 条目。"),
+    );
   }
   const now = options.now?.() ?? Date.now();
   let saved: CodeAnalysisRecord | null = null;
-  writeQueue = writeQueue.catch(() => undefined).then(async () => {
-    const stored = await readStored();
-    const existing = normalizeCodeAnalysis(stored[analysisKey(itemID)]);
-    saved = {
-      itemID,
-      githubUrl: input.githubUrl,
-      owner: input.owner,
-      repo: input.repo,
-      ...(input.branch ? { branch: input.branch } : {}),
-      sections: input.sections.filter(Boolean),
-      markdown: input.markdown,
-      createdAt: existing?.createdAt ?? now,
-      updatedAt: now,
-    };
-    stored[analysisKey(itemID)] = saved;
-    await writeStored(stored);
-  });
+  writeQueue = writeQueue
+    .catch(() => undefined)
+    .then(async () => {
+      const stored = await readStored();
+      const existing = normalizeCodeAnalysis(stored[analysisKey(itemID)]);
+      saved = {
+        itemID,
+        githubUrl: input.githubUrl,
+        owner: input.owner,
+        repo: input.repo,
+        ...(input.branch ? { branch: input.branch } : {}),
+        sections: input.sections.filter(Boolean),
+        markdown: input.markdown,
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
+      };
+      stored[analysisKey(itemID)] = saved;
+      await writeStored(stored);
+    });
   return writeQueue
     .then(() => ({ ok: true, analysis: saved! }) as const)
     .catch((err) =>
@@ -213,7 +218,14 @@ function normalizeRepoBinding(value: unknown): CodeRepoBinding | null {
   const repo = stringValue(value.repo);
   const createdAt = numberValue(value.createdAt);
   const updatedAt = numberValue(value.updatedAt);
-  if (itemID == null || !githubUrl || !owner || !repo || createdAt == null || updatedAt == null) {
+  if (
+    itemID == null ||
+    !githubUrl ||
+    !owner ||
+    !repo ||
+    createdAt == null ||
+    updatedAt == null
+  ) {
     return null;
   }
   const branch = stringValue(value.branch);
@@ -236,7 +248,9 @@ function normalizeCodeAnalysis(value: unknown): CodeAnalysisRecord | null {
   return {
     ...base,
     sections: Array.isArray(value.sections)
-      ? value.sections.filter((entry): entry is string => typeof entry === "string")
+      ? value.sections.filter(
+          (entry): entry is string => typeof entry === "string",
+        )
       : [],
     markdown,
   };

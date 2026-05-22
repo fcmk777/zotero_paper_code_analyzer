@@ -56,7 +56,11 @@ describe("extractSymbolSkeleton", () => {
     expect(skeleton.symbols).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "config_key", name: "model", line: 1 }),
-        expect.objectContaining({ kind: "config_key", name: "training", line: 3 }),
+        expect.objectContaining({
+          kind: "config_key",
+          name: "training",
+          line: 3,
+        }),
       ]),
     );
   });

@@ -3,11 +3,26 @@ import { normalizeGitHubUrl } from "../../src/context/code-github";
 
 describe("normalizeGitHubUrl", () => {
   it.each([
-    ["https://github.com/owner/repo", { owner: "owner", repo: "repo", branch: undefined }],
-    ["https://github.com/owner/repo.git", { owner: "owner", repo: "repo", branch: undefined }],
-    ["https://github.com/owner/repo/", { owner: "owner", repo: "repo", branch: undefined }],
-    ["https://github.com/owner/repo/tree/main", { owner: "owner", repo: "repo", branch: "main" }],
-    ["https://github.com/owner/repo/tree/dev-branch", { owner: "owner", repo: "repo", branch: "dev-branch" }],
+    [
+      "https://github.com/owner/repo",
+      { owner: "owner", repo: "repo", branch: undefined },
+    ],
+    [
+      "https://github.com/owner/repo.git",
+      { owner: "owner", repo: "repo", branch: undefined },
+    ],
+    [
+      "https://github.com/owner/repo/",
+      { owner: "owner", repo: "repo", branch: undefined },
+    ],
+    [
+      "https://github.com/owner/repo/tree/main",
+      { owner: "owner", repo: "repo", branch: "main" },
+    ],
+    [
+      "https://github.com/owner/repo/tree/dev-branch",
+      { owner: "owner", repo: "repo", branch: "dev-branch" },
+    ],
   ])("normalizes %s", (input, expected) => {
     const result = normalizeGitHubUrl(input);
 

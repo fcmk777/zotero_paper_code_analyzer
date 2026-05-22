@@ -299,7 +299,11 @@ export async function createPdfLocator(reader: unknown): Promise<PdfLocator> {
     async sentenceAtPoint(pageIndex, point) {
       const page = await bundleFor(pageIndex);
       if (!page) return null;
-      return sentenceAtPointOnPage(page, point, await cumulativeOffset(pageIndex));
+      return sentenceAtPointOnPage(
+        page,
+        point,
+        await cumulativeOffset(pageIndex),
+      );
     },
     async sentenceAtIndex(pageIndex, sentenceIndex) {
       const page = await bundleFor(pageIndex);
@@ -787,7 +791,9 @@ function viewBoxFromReaderView(
 ): PdfRect | undefined {
   return (
     viewBoxFromPageView(view._pages?.[pageIndex]) ??
-    firstViewBox(apps.map((app) => viewBoxFromViewer(app?.pdfViewer, pageIndex)))
+    firstViewBox(
+      apps.map((app) => viewBoxFromViewer(app?.pdfViewer, pageIndex)),
+    )
   );
 }
 
@@ -1216,7 +1222,8 @@ function sentenceAtPointOnPage(
   if (!segments.length) return null;
   const segment =
     segments.find(
-      (entry) => anchorIndex >= entry.startAnchor && anchorIndex <= entry.endAnchor,
+      (entry) =>
+        anchorIndex >= entry.startAnchor && anchorIndex <= entry.endAnchor,
     ) ?? closestSentenceSegment(segments, anchorIndex);
   return segment
     ? locatedSentenceFromSegment(page, segments, segment, pageGlobalOffset)
@@ -1248,7 +1255,8 @@ function locatedSentenceFromSegment(
   if (start == null || end == null || end <= start) return null;
   const rects = rectsForRange(page.anchors, start, end);
   if (!rects.length) return null;
-  const paraStart = page.anchors[segment.paragraphStartAnchor]?.startOffset ?? start;
+  const paraStart =
+    page.anchors[segment.paragraphStartAnchor]?.startOffset ?? start;
   const paraEnd = page.anchors[segment.paragraphEndAnchor]?.endOffset ?? end;
   const text = page.pageText.slice(start, end).replace(/\s+/g, " ").trim();
   const pageSentenceIndex = segments.indexOf(segment);
@@ -1365,7 +1373,10 @@ function paragraphAnchorRanges(anchors: ItemAnchor[]): Array<[number, number]> {
       start: lineStart,
       end,
       rect: unionRects(rects),
-      text: lineAnchors.map((anchor) => anchor.itemString).join("").trim(),
+      text: lineAnchors
+        .map((anchor) => anchor.itemString)
+        .join("")
+        .trim(),
     });
     lineStart = end + 1;
   };

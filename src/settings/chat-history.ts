@@ -1,5 +1,9 @@
-import type { AssistantAnnotationDraft, ChatTaskMeta, Message } from '../providers/types';
-import { profileFilePath } from './profile-path';
+import type {
+  AssistantAnnotationDraft,
+  ChatTaskMeta,
+  Message,
+} from "../providers/types";
+import { profileFilePath } from "./profile-path";
 
 // Per-Zotero-item chat persistence.
 //
@@ -44,7 +48,7 @@ interface ZoteroItemLike {
 }
 
 interface ZoteroLibraryLike {
-  libraryType?: 'user' | 'group';
+  libraryType?: "user" | "group";
   groupID?: number;
   id?: number;
 }
@@ -81,7 +85,7 @@ interface ZoteroGlobal {
 // is `(libraryType, groupID?, itemKey)` — `itemKey` is the 8-char base32
 // key Zotero sync uses, and it's stable across machines.
 export interface PortableThread {
-  libraryType: 'user' | 'group' | 'global';
+  libraryType: "user" | "group" | "global";
   groupID?: number;
   itemKey?: string;
   updatedAt: string;
@@ -94,37 +98,44 @@ export interface ImportThreadsResult {
   unresolved: number;
 }
 
-const HISTORY_FILE = 'zotero-ai-sidebar-chat-history.json';
+const HISTORY_FILE = "zotero-ai-sidebar-chat-history.json";
 let writeQueue: Promise<void> = Promise.resolve();
 
-export async function loadChatMessages(itemID: number | null): Promise<Message[]> {
+export async function loadChatMessages(
+  itemID: number | null,
+): Promise<Message[]> {
   const threads = await readThreads();
   return normalizeMessages(threads[threadKey(itemID)]?.messages);
 }
 
-export function saveChatMessages(itemID: number | null, messages: Message[]): Promise<void> {
+export function saveChatMessages(
+  itemID: number | null,
+  messages: Message[],
+): Promise<void> {
   // Chain the next write onto the queue. `.catch(() => undefined)` ensures
   // a previous write's failure does NOT cancel the next write — callers
   // observe their own write's outcome via the returned promise.
   // GOTCHA: an empty `messages` array deletes the thread entirely. The
   // sidebar uses this for "clear chat" without a separate delete API.
-  writeQueue = writeQueue.catch(() => undefined).then(async () => {
-    const threads = await readThreads();
-    const key = threadKey(itemID);
-    const safeMessages = normalizeMessages(messages);
+  writeQueue = writeQueue
+    .catch(() => undefined)
+    .then(async () => {
+      const threads = await readThreads();
+      const key = threadKey(itemID);
+      const safeMessages = normalizeMessages(messages);
 
-    if (safeMessages.length === 0) {
-      delete threads[key];
-    } else {
-      threads[key] = {
-        itemID,
-        updatedAt: new Date().toISOString(),
-        messages: safeMessages,
-      };
-    }
+      if (safeMessages.length === 0) {
+        delete threads[key];
+      } else {
+        threads[key] = {
+          itemID,
+          updatedAt: new Date().toISOString(),
+          messages: safeMessages,
+        };
+      }
 
-    await writeThreads(threads);
-  });
+      await writeThreads(threads);
+    });
   return writeQueue;
 }
 
@@ -134,9 +145,12 @@ export function chatHistoryPath(): string {
 
 async function readThreads(): Promise<StoredThreads> {
   try {
-    const raw = await getZotero().File.getContentsAsync(chatHistoryPath(), 'utf-8');
+    const raw = await getZotero().File.getContentsAsync(
+      chatHistoryPath(),
+      "utf-8",
+    );
     const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
       ? (parsed as StoredThreads)
       : {};
   } catch {
@@ -158,46 +172,54 @@ async function writeThreads(threads: StoredThreads): Promise<void> {
 function normalizeMessages(value: unknown): Message[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((message) => {
-    if (!message || typeof message !== 'object') return [];
+    if (!message || typeof message !== "object") return [];
     const m = message as Partial<Message>;
-    if (m.role !== 'user' && m.role !== 'assistant') return [];
-    if (typeof m.content !== 'string') return [];
+    if (m.role !== "user" && m.role !== "assistant") return [];
+    if (typeof m.content !== "string") return [];
     const images = normalizeImages(m.images);
     const annotationDraft = normalizeAnnotationDraft(m.annotationDraft);
     const task = normalizeChatTask(m.task);
-    return [{
-      role: m.role,
-      content: m.content,
-      ...(typeof m.apiContent === 'string' && m.apiContent
-        ? { apiContent: m.apiContent }
-        : {}),
-      ...(typeof m.thinking === 'string' && m.thinking
-        ? { thinking: m.thinking }
-        : {}),
-      ...(images.length ? { images } : {}),
-      ...(isRecord(m.context) ? { context: m.context as Message['context'] } : {}),
-      ...(annotationDraft ? { annotationDraft } : {}),
-      ...(task ? { task } : {}),
-    }];
+    return [
+      {
+        role: m.role,
+        content: m.content,
+        ...(typeof m.apiContent === "string" && m.apiContent
+          ? { apiContent: m.apiContent }
+          : {}),
+        ...(typeof m.thinking === "string" && m.thinking
+          ? { thinking: m.thinking }
+          : {}),
+        ...(images.length ? { images } : {}),
+        ...(isRecord(m.context)
+          ? { context: m.context as Message["context"] }
+          : {}),
+        ...(annotationDraft ? { annotationDraft } : {}),
+        ...(task ? { task } : {}),
+      },
+    ];
   });
 }
 
 function normalizeChatTask(value: unknown): ChatTaskMeta | null {
   if (!isRecord(value)) return null;
-  const id = typeof value.id === 'string' ? value.id : '';
-  const title = typeof value.title === 'string' ? value.title : '';
-  const promptPreview = typeof value.promptPreview === 'string' ? value.promptPreview : '';
-  const createdAt = typeof value.createdAt === 'number' ? value.createdAt : 0;
+  const id = typeof value.id === "string" ? value.id : "";
+  const title = typeof value.title === "string" ? value.title : "";
+  const promptPreview =
+    typeof value.promptPreview === "string" ? value.promptPreview : "";
+  const createdAt = typeof value.createdAt === "number" ? value.createdAt : 0;
   if (!id || !title || !createdAt) return null;
   const kind =
-    value.kind === 'selection' || value.kind === 'full_text' || value.kind === 'general'
+    value.kind === "selection" ||
+    value.kind === "full_text" ||
+    value.kind === "general"
       ? value.kind
-      : 'general';
+      : "general";
   const completedAt = optionalNumber(value.completedAt);
   const viewedAt = optionalNumber(value.viewedAt);
   const hiddenAt = optionalNumber(value.hiddenAt);
   const cancelledAt = optionalNumber(value.cancelledAt);
-  const error = typeof value.error === 'string' && value.error ? value.error : undefined;
+  const error =
+    typeof value.error === "string" && value.error ? value.error : undefined;
   const pdfSelection = normalizePdfSelectionLocator(value.pdfSelection);
   return {
     id,
@@ -214,14 +236,19 @@ function normalizeChatTask(value: unknown): ChatTaskMeta | null {
   };
 }
 
-function normalizePdfSelectionLocator(value: unknown): ChatTaskMeta['pdfSelection'] | null {
+function normalizePdfSelectionLocator(
+  value: unknown,
+): ChatTaskMeta["pdfSelection"] | null {
   if (!isRecord(value)) return null;
-  const attachmentID = typeof value.attachmentID === 'number' ? value.attachmentID : null;
-  const selectedText = typeof value.selectedText === 'string' ? value.selectedText : '';
+  const attachmentID =
+    typeof value.attachmentID === "number" ? value.attachmentID : null;
+  const selectedText =
+    typeof value.selectedText === "string" ? value.selectedText : "";
   const position = isRecord(value.position) ? value.position : null;
   if (attachmentID == null || !selectedText || !position) return null;
   const pageIndex = optionalNumber(value.pageIndex);
-  const pageLabel = typeof value.pageLabel === 'string' ? value.pageLabel : undefined;
+  const pageLabel =
+    typeof value.pageLabel === "string" ? value.pageLabel : undefined;
   return {
     attachmentID,
     selectedText,
@@ -232,17 +259,20 @@ function normalizePdfSelectionLocator(value: unknown): ChatTaskMeta['pdfSelectio
 }
 
 function optionalNumber(value: unknown): number | null {
-  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
-function normalizeAnnotationDraft(value: unknown): AssistantAnnotationDraft | null {
+function normalizeAnnotationDraft(
+  value: unknown,
+): AssistantAnnotationDraft | null {
   if (!isRecord(value)) return null;
-  const comment = typeof value.comment === 'string' ? value.comment : '';
+  const comment = typeof value.comment === "string" ? value.comment : "";
   if (!comment) return null;
   const snapshot = isRecord(value.snapshot) ? value.snapshot : null;
   if (!snapshot) return null;
-  const text = typeof snapshot.text === 'string' ? snapshot.text : '';
-  const attachmentID = typeof snapshot.attachmentID === 'number' ? snapshot.attachmentID : null;
+  const text = typeof snapshot.text === "string" ? snapshot.text : "";
+  const attachmentID =
+    typeof snapshot.attachmentID === "number" ? snapshot.attachmentID : null;
   const annotation = isRecord(snapshot.annotation) ? snapshot.annotation : null;
   if (!text || attachmentID == null || !annotation) return null;
   const color = normalizeAnnotationColor(value.color);
@@ -253,58 +283,63 @@ function normalizeAnnotationDraft(value: unknown): AssistantAnnotationDraft | nu
     ...(color ? { color } : {}),
     snapshot: { text, attachmentID, annotation },
     state,
-    ...(textState.kind !== 'idle' ? { textState } : {}),
+    ...(textState.kind !== "idle" ? { textState } : {}),
   };
 }
 
 function normalizeAnnotationColor(value: unknown): string {
-  if (typeof value !== 'string') return '';
+  if (typeof value !== "string") return "";
   const color = value.trim().toLowerCase();
-  return /^#[0-9a-f]{6}$/.test(color) ? color : '';
+  return /^#[0-9a-f]{6}$/.test(color) ? color : "";
 }
 
-function normalizeAnnotationDraftState(value: unknown): NonNullable<AssistantAnnotationDraft['textState']> {
-  if (!isRecord(value)) return { kind: 'idle' };
-  if (value.kind === 'saved' && typeof value.annotationID === 'number') {
-    const savedAt = typeof value.savedAt === 'number' ? value.savedAt : Date.now();
-    return { kind: 'saved', annotationID: value.annotationID, savedAt };
+function normalizeAnnotationDraftState(
+  value: unknown,
+): NonNullable<AssistantAnnotationDraft["textState"]> {
+  if (!isRecord(value)) return { kind: "idle" };
+  if (value.kind === "saved" && typeof value.annotationID === "number") {
+    const savedAt =
+      typeof value.savedAt === "number" ? value.savedAt : Date.now();
+    return { kind: "saved", annotationID: value.annotationID, savedAt };
   }
-  if (value.kind === 'failed' && typeof value.error === 'string') {
-    return { kind: 'failed', error: value.error };
+  if (value.kind === "failed" && typeof value.error === "string") {
+    return { kind: "failed", error: value.error };
   }
-  return { kind: 'idle' };
+  return { kind: "idle" };
 }
 
-function normalizeImages(value: unknown): NonNullable<Message['images']> {
+function normalizeImages(value: unknown): NonNullable<Message["images"]> {
   if (!Array.isArray(value)) return [];
   return value.flatMap((image) => {
     if (!isRecord(image)) return [];
     if (
-      typeof image.id !== 'string' ||
-      typeof image.name !== 'string' ||
-      typeof image.mediaType !== 'string' ||
-      typeof image.dataUrl !== 'string' ||
-      typeof image.size !== 'number'
+      typeof image.id !== "string" ||
+      typeof image.name !== "string" ||
+      typeof image.mediaType !== "string" ||
+      typeof image.dataUrl !== "string" ||
+      typeof image.size !== "number"
     ) {
       return [];
     }
-    return [{
-      id: image.id,
-      ...(typeof image.marker === 'string' ? { marker: image.marker } : {}),
-      name: image.name,
-      mediaType: image.mediaType,
-      dataUrl: image.dataUrl,
-      size: image.size,
-    }];
+    return [
+      {
+        id: image.id,
+        ...(typeof image.marker === "string" ? { marker: image.marker } : {}),
+        name: image.name,
+        mediaType: image.mediaType,
+        dataUrl: image.dataUrl,
+        size: image.size,
+      },
+    ];
   });
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
+  return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
 function threadKey(itemID: number | null): string {
-  return itemID == null ? 'global' : `item:${itemID}`;
+  return itemID == null ? "global" : `item:${itemID}`;
 }
 
 function getZotero(): ZoteroGlobal {
@@ -324,9 +359,9 @@ export async function exportAllThreads(): Promise<PortableThread[]> {
   const threads = await readThreads();
   const result: PortableThread[] = [];
   for (const [key, thread] of Object.entries(threads)) {
-    if (key === 'global' || thread.itemID == null) {
+    if (key === "global" || thread.itemID == null) {
       result.push({
-        libraryType: 'global',
+        libraryType: "global",
         updatedAt: thread.updatedAt,
         messages: thread.messages,
       });
@@ -347,85 +382,97 @@ export function importAllThreads(
   portable: PortableThread[],
 ): Promise<ImportThreadsResult> {
   // Chain on writeQueue so we don't race a chat save in flight.
-  let outcome: ImportThreadsResult = { imported: 0, unchanged: 0, unresolved: 0 };
-  writeQueue = writeQueue.catch(() => undefined).then(async () => {
-    const existing = await readThreads();
-    let imported = 0;
-    let unchanged = 0;
-    let unresolved = 0;
-    for (const candidate of portable) {
-      const localKey = resolvePortableKey(candidate);
-      if (!localKey) {
-        unresolved += 1;
-        continue;
+  let outcome: ImportThreadsResult = {
+    imported: 0,
+    unchanged: 0,
+    unresolved: 0,
+  };
+  writeQueue = writeQueue
+    .catch(() => undefined)
+    .then(async () => {
+      const existing = await readThreads();
+      let imported = 0;
+      let unchanged = 0;
+      let unresolved = 0;
+      for (const candidate of portable) {
+        const localKey = resolvePortableKey(candidate);
+        if (!localKey) {
+          unresolved += 1;
+          continue;
+        }
+        const safeMessages = normalizeMessages(candidate.messages);
+        if (safeMessages.length === 0) continue;
+        const existingThread = existing[localKey];
+        // Last-write-wins by updatedAt: only overwrite when the cloud copy is
+        // strictly newer. Equal timestamps treated as "no change" to avoid
+        // gratuitous updates.
+        if (existingThread && existingThread.updatedAt >= candidate.updatedAt) {
+          unchanged += 1;
+          continue;
+        }
+        existing[localKey] = {
+          itemID:
+            candidate.libraryType === "global" ? null : itemIDForKey(localKey),
+          updatedAt: candidate.updatedAt,
+          messages: safeMessages,
+        };
+        imported += 1;
       }
-      const safeMessages = normalizeMessages(candidate.messages);
-      if (safeMessages.length === 0) continue;
-      const existingThread = existing[localKey];
-      // Last-write-wins by updatedAt: only overwrite when the cloud copy is
-      // strictly newer. Equal timestamps treated as "no change" to avoid
-      // gratuitous updates.
-      if (existingThread && existingThread.updatedAt >= candidate.updatedAt) {
-        unchanged += 1;
-        continue;
-      }
-      existing[localKey] = {
-        itemID: candidate.libraryType === 'global' ? null : itemIDForKey(localKey),
-        updatedAt: candidate.updatedAt,
-        messages: safeMessages,
-      };
-      imported += 1;
-    }
-    await writeThreads(existing);
-    outcome = { imported, unchanged, unresolved };
-  });
+      await writeThreads(existing);
+      outcome = { imported, unchanged, unresolved };
+    });
   return writeQueue.then(() => outcome);
 }
 
-function portableFromItemID(itemID: number): Omit<PortableThread, 'updatedAt' | 'messages'> | null {
+function portableFromItemID(
+  itemID: number,
+): Omit<PortableThread, "updatedAt" | "messages"> | null {
   const Zotero = getZotero();
   const item = Zotero.Items?.get(itemID);
-  if (!item || typeof item.key !== 'string' || item.key.length === 0) return null;
+  if (!item || typeof item.key !== "string" || item.key.length === 0)
+    return null;
   const libraryID = item.libraryID;
-  if (typeof libraryID !== 'number') return null;
+  if (typeof libraryID !== "number") return null;
   const library = Zotero.Libraries?.get(libraryID);
-  if (library?.libraryType === 'group') {
+  if (library?.libraryType === "group") {
     // Prefer the group's portable groupID (stable across machines) over the
     // local libraryID. WHY: libraryID is reassigned per database; groupID
     // is the global Zotero group identifier.
-    const groupID = typeof library.groupID === 'number' ? library.groupID : undefined;
-    if (typeof groupID !== 'number') return null;
-    return { libraryType: 'group', groupID, itemKey: item.key };
+    const groupID =
+      typeof library.groupID === "number" ? library.groupID : undefined;
+    if (typeof groupID !== "number") return null;
+    return { libraryType: "group", groupID, itemKey: item.key };
   }
-  return { libraryType: 'user', itemKey: item.key };
+  return { libraryType: "user", itemKey: item.key };
 }
 
 function resolvePortableKey(thread: PortableThread): string | null {
-  if (thread.libraryType === 'global') return 'global';
+  if (thread.libraryType === "global") return "global";
   const Zotero = getZotero();
-  if (typeof thread.itemKey !== 'string' || thread.itemKey.length === 0) return null;
+  if (typeof thread.itemKey !== "string" || thread.itemKey.length === 0)
+    return null;
   let libraryID: number | undefined;
-  if (thread.libraryType === 'group') {
-    if (typeof thread.groupID !== 'number') return null;
+  if (thread.libraryType === "group") {
+    if (typeof thread.groupID !== "number") return null;
     const group = Zotero.Groups?.get(thread.groupID);
-    if (!group || typeof group.libraryID !== 'number') return null;
+    if (!group || typeof group.libraryID !== "number") return null;
     libraryID = group.libraryID;
   } else {
     libraryID = Zotero.Libraries?.userLibraryID;
   }
-  if (typeof libraryID !== 'number') return null;
+  if (typeof libraryID !== "number") return null;
   const item = Zotero.Items?.getByLibraryAndKey(libraryID, thread.itemKey);
   if (!item) return null;
   // We don't have a public itemID accessor on the item-like; the legacy
   // storage layout is `item:<itemID>`, so we round-trip via Zotero's
   // typed shape. The cast is safe — Zotero items always expose `id`.
   const id = (item as unknown as { id?: number }).id;
-  if (typeof id !== 'number') return null;
+  if (typeof id !== "number") return null;
   return `item:${id}`;
 }
 
 function itemIDForKey(threadKey: string): number | null {
-  if (!threadKey.startsWith('item:')) return null;
-  const id = Number(threadKey.slice('item:'.length));
+  if (!threadKey.startsWith("item:")) return null;
+  const id = Number(threadKey.slice("item:".length));
   return Number.isFinite(id) ? id : null;
 }

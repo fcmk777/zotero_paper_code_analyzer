@@ -54,7 +54,12 @@ export async function resolveGitHubRef(
     };
   }
   if (ref.includes("/")) {
-    const matched = await resolveLongestKnownRef(repo.owner, repo.repo, ref, options);
+    const matched = await resolveLongestKnownRef(
+      repo.owner,
+      repo.repo,
+      ref,
+      options,
+    );
     if (matched.ok) {
       return {
         ok: true,
@@ -85,7 +90,9 @@ export async function downloadGitHubArchive(
 ): Promise<RepoResult<{ bytes: Uint8Array; contentType: string }>> {
   const response = await githubFetch(resolved.archiveUrl, options);
   if (!response.ok) return response;
-  const contentLength = Number(response.response.headers.get("content-length") || "0");
+  const contentLength = Number(
+    response.response.headers.get("content-length") || "0",
+  );
   if (contentLength > options.policy.maxArchiveBytes) {
     return repoError(
       "ARCHIVE_TOO_LARGE",
@@ -159,7 +166,11 @@ async function resolveLongestKnownRef(
     .sort((a, b) => b.ref.length - a.ref.length);
   const match = candidates[0];
   if (!match) {
-    return repoError("REF_NOT_FOUND", `没有找到匹配的 branch/tag：${rawRef}`, true);
+    return repoError(
+      "REF_NOT_FOUND",
+      `没有找到匹配的 branch/tag：${rawRef}`,
+      true,
+    );
   }
   return { ok: true, ref: match.ref, sha: match.sha };
 }
@@ -189,7 +200,11 @@ async function githubFetch(
 ): Promise<RepoResult<{ response: Response }>> {
   const fetchImpl = options.fetchImpl ?? fetch;
   let lastError: unknown;
-  for (let attempt = 0; attempt <= options.policy.githubRequestRetries; attempt++) {
+  for (
+    let attempt = 0;
+    attempt <= options.policy.githubRequestRetries;
+    attempt++
+  ) {
     const controller = new AbortController();
     const timeout = setTimeout(
       () => controller.abort(),

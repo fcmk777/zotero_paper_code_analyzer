@@ -30,7 +30,11 @@ export function classifyRepoFile(
   const text =
     !skipReason && !binary ? normalizeNewlines(TEXT_DECODER.decode(bytes)) : "";
   const roleTags = roleTagsForPath(normalizedPath, language);
-  const score = importanceScoreForPath(normalizedPath, bytes.byteLength, policy);
+  const score = importanceScoreForPath(
+    normalizedPath,
+    bytes.byteLength,
+    policy,
+  );
   return {
     meta: {
       path: normalizedPath,
@@ -168,30 +172,51 @@ export function extensionForPath(path: string): string {
   return index > 0 ? basename.slice(index).toLowerCase() : "";
 }
 
-export function roleTagsForPath(path: string, language = languageForPath(path)): RepoRoleTag[] {
+export function roleTagsForPath(
+  path: string,
+  language = languageForPath(path),
+): RepoRoleTag[] {
   const lower = normalizeRepoPath(path).toLowerCase();
   const basename = basenameForPath(lower);
   const segments = lower.split("/");
   const joined = `/${segments.join("/")}/`;
   const tags = new Set<RepoRoleTag>();
-  if (basename.startsWith("readme") || language === "markdown") tags.add("readme");
+  if (basename.startsWith("readme") || language === "markdown")
+    tags.add("readme");
   if (
     /(^|\/)(configs?|default)\//.test(joined) ||
     /(config|default)\.(py|ya?ml|json|toml|ini|cfg|conf)$/.test(lower) ||
-    ["requirements.txt", "environment.yml", "pyproject.toml", "setup.cfg", "package.json"].includes(basename)
+    [
+      "requirements.txt",
+      "environment.yml",
+      "pyproject.toml",
+      "setup.cfg",
+      "package.json",
+    ].includes(basename)
   ) {
     tags.add("config");
   }
-  if (/(model|models|network|networks|module|modules|architecture|backbone|encoder|decoder|transformer)/.test(lower)) {
+  if (
+    /(model|models|network|networks|module|modules|architecture|backbone|encoder|decoder|transformer)/.test(
+      lower,
+    )
+  ) {
     tags.add("model_architecture");
   }
-  if (/(^|\/)(train|training|trainer|engine|finetune|main|run)\b/.test(lower) || /(train|trainer|training|finetune)\.(py|ts|js)$/.test(lower)) {
+  if (
+    /(^|\/)(train|training|trainer|engine|finetune|main|run)\b/.test(lower) ||
+    /(train|trainer|training|finetune)\.(py|ts|js)$/.test(lower)
+  ) {
     tags.add("training_entry");
   }
   if (/(loss|losses|criterion|criterions|objective)/.test(lower)) {
     tags.add("loss_objective");
   }
-  if (/(dataset|datasets|dataloader|transforms|datamodule|data_pipe|data\/|\/data\.)/.test(lower)) {
+  if (
+    /(dataset|datasets|dataloader|transforms|datamodule|data_pipe|data\/|\/data\.)/.test(
+      lower,
+    )
+  ) {
     tags.add("dataset_pipeline");
   }
   if (/(eval|evaluate|evaluation|metrics|test)\b/.test(lower)) {
@@ -243,7 +268,10 @@ export function importanceScoreForPath(
   return { score: Math.max(0, score), reasons };
 }
 
-function isCodeDataDirectoryException(segment: string, basename: string): boolean {
+function isCodeDataDirectoryException(
+  segment: string,
+  basename: string,
+): boolean {
   if (segment !== "data" && segment !== "datasets") return false;
   return /^(dataset|datasets|dataloader|data|transforms|datamodule)\.(py|ts|js|java|go|rs)$/.test(
     basename,

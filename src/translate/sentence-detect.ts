@@ -1,15 +1,15 @@
-import { sentenceAt, splitSentences } from './sentence-splitter';
+import { sentenceAt, splitSentences } from "./sentence-splitter";
 import type {
   LocateResult,
   PdfLocator,
   PdfPageContent,
-} from '../context/pdf-locator';
+} from "../context/pdf-locator";
 
 export interface DetectedSentence {
   text: string;
   pageIndex: number;
   pageLabel: string;
-  rects: LocateResult['rects'];
+  rects: LocateResult["rects"];
   sortIndex: string;
   pageSentenceIndex: number;
   pageSentenceCount: number;
@@ -40,7 +40,9 @@ export interface DetectInput {
   locator: PdfLocator;
 }
 
-export async function detectSentenceAtPoint(input: DetectInput): Promise<DetectedSentence | null> {
+export async function detectSentenceAtPoint(
+  input: DetectInput,
+): Promise<DetectedSentence | null> {
   const { iframeWindow, clientX, clientY, locator } = input;
   const pdfPoint = pdfPointFromClientPoint(iframeWindow, clientX, clientY);
   if (pdfPoint && locator.sentenceAtPoint) {
@@ -99,15 +101,15 @@ export async function detectSentenceFromSelection(input: {
 }
 
 async function detectSentenceAtCaret(
-  doc: IframeWindowLike['document'],
+  doc: IframeWindowLike["document"],
   caret: CaretPosition,
   locator: PdfLocator,
 ): Promise<DetectedSentence | null> {
   if (!caret.offsetNode) return null;
   const textLayer = findTextLayerAncestor(caret.offsetNode);
   if (!textLayer) return null;
-  const pageEl = textLayer.closest('.page,[data-page-number]');
-  const pageNumberAttr = pageEl?.getAttribute('data-page-number');
+  const pageEl = textLayer.closest(".page,[data-page-number]");
+  const pageNumberAttr = pageEl?.getAttribute("data-page-number");
   if (!pageNumberAttr) return null;
   const pageIndex = parseInt(pageNumberAttr, 10) - 1;
   if (!Number.isFinite(pageIndex) || pageIndex < 0) return null;
@@ -129,7 +131,10 @@ async function detectSentenceAtPageOffset(
   const bundle = await locator.getPageContent(pageIndex);
   if (!bundle) return null;
 
-  const normalizedOffset = normalizedFromOriginalOffset(offsetWithinPageText, bundle.normalizedToOriginal);
+  const normalizedOffset = normalizedFromOriginalOffset(
+    offsetWithinPageText,
+    bundle.normalizedToOriginal,
+  );
   const span = sentenceAt(bundle.normalizedText, normalizedOffset);
   if (!span) return null;
 
@@ -140,7 +145,9 @@ async function detectSentenceAtPageOffset(
   if (!sentenceText) return null;
 
   const allSentencesNormalized = splitSentences(bundle.normalizedText);
-  const idx = allSentencesNormalized.findIndex((s) => s.start === span.start && s.end === span.end);
+  const idx = allSentencesNormalized.findIndex(
+    (s) => s.start === span.start && s.end === span.end,
+  );
   const pageSentenceIndex = idx >= 0 ? idx : 0;
 
   const located = await locator.locate(sentenceText, {
@@ -174,7 +181,7 @@ function pdfPointFromClientPoint(
   const pageIndex = pageIndexFromElement(iframeWindow, pageEl);
   if (pageIndex < 0) return null;
   const viewport = pdfPageViewport(iframeWindow, pageIndex);
-  if (typeof viewport?.convertToPdfPoint !== 'function') return null;
+  if (typeof viewport?.convertToPdfPoint !== "function") return null;
 
   const rect = pageEl.getBoundingClientRect();
   const x = clientX + pageEl.scrollLeft - rect.left;
@@ -191,11 +198,11 @@ function pageElementFromPoint(
   clientY: number,
 ): HTMLElement | null {
   const elements =
-    typeof doc.elementsFromPoint === 'function'
+    typeof doc.elementsFromPoint === "function"
       ? Array.from(doc.elementsFromPoint(clientX, clientY))
       : [];
   for (const element of elements) {
-    const page = element.closest?.('.page,[data-page-number]');
+    const page = element.closest?.(".page,[data-page-number]");
     if (isElementWithLayout(page)) return page as HTMLElement;
   }
   return null;
@@ -204,8 +211,8 @@ function pageElementFromPoint(
 function isElementWithLayout(value: unknown): value is Element {
   return (
     !!value &&
-    typeof (value as Element).closest === 'function' &&
-    typeof (value as Element).getBoundingClientRect === 'function'
+    typeof (value as Element).closest === "function" &&
+    typeof (value as Element).getBoundingClientRect === "function"
   );
 }
 
@@ -216,7 +223,7 @@ function pageIndexFromElement(
   const pages = pdfViewerPages(iframeWindow);
   const index = pages.findIndex((page) => page?.div === pageEl);
   if (index >= 0) return index;
-  const pageNumber = Number(pageEl.getAttribute('data-page-number'));
+  const pageNumber = Number(pageEl.getAttribute("data-page-number"));
   return Number.isInteger(pageNumber) && pageNumber > 0 ? pageNumber - 1 : -1;
 }
 
@@ -226,14 +233,19 @@ function pdfPageViewport(
 ): { convertToPdfPoint?: (x: number, y: number) => [number, number] } | null {
   const page = pdfViewerPages(iframeWindow)[pageIndex];
   const viewport = page?.viewport;
-  return viewport && typeof viewport === 'object'
-    ? (viewport as { convertToPdfPoint?: (x: number, y: number) => [number, number] })
+  return viewport && typeof viewport === "object"
+    ? (viewport as {
+        convertToPdfPoint?: (x: number, y: number) => [number, number];
+      })
     : null;
 }
 
-function pdfViewerPages(iframeWindow: IframeWindowLike): Array<{ div?: Element; viewport?: unknown }> {
+function pdfViewerPages(
+  iframeWindow: IframeWindowLike,
+): Array<{ div?: Element; viewport?: unknown }> {
   const app = pdfViewerApplication(iframeWindow);
-  const pages = (app as { pdfViewer?: { _pages?: unknown[] } } | null)?.pdfViewer?._pages;
+  const pages = (app as { pdfViewer?: { _pages?: unknown[] } } | null)
+    ?.pdfViewer?._pages;
   return Array.isArray(pages)
     ? (pages as Array<{ div?: Element; viewport?: unknown }>)
     : [];
@@ -262,11 +274,11 @@ function caretFromRange(range: Range): CaretPosition | null {
 }
 
 function caretFromPoint(
-  doc: IframeWindowLike['document'],
+  doc: IframeWindowLike["document"],
   x: number,
   y: number,
 ): CaretPosition | null {
-  doc.body?.classList.add('reading-caret-position');
+  doc.body?.classList.add("reading-caret-position");
   try {
     const position = doc.caretPositionFromPoint?.(x, y);
     if (position) {
@@ -288,7 +300,7 @@ function caretFromPoint(
         }
       : null;
   } finally {
-    doc.body?.classList.remove('reading-caret-position');
+    doc.body?.classList.remove("reading-caret-position");
   }
 }
 
@@ -296,19 +308,22 @@ function findTextLayerAncestor(node: Node): HTMLElement | null {
   let cur: Node | null = node;
   while (cur) {
     const el = elementLike(cur);
-    if (el?.classList?.contains('textLayer')) return el as HTMLElement;
+    if (el?.classList?.contains("textLayer")) return el as HTMLElement;
     cur = (el?.parentElement as Node | null | undefined) ?? cur.parentNode;
   }
   return null;
 }
 
 function elementLike(node: Node): Element | null {
-  return node.nodeType === 1 && typeof (node as Element).closest === 'function'
+  return node.nodeType === 1 && typeof (node as Element).closest === "function"
     ? (node as Element)
     : null;
 }
 
-function approxClickOffset(textLayer: HTMLElement, caret: CaretPosition): number {
+function approxClickOffset(
+  textLayer: HTMLElement,
+  caret: CaretPosition,
+): number {
   if (!textLayer.ownerDocument) return -1;
   const rangeOffset = rangeTextOffset(textLayer, caret);
   if (rangeOffset >= 0) return rangeOffset;
@@ -320,7 +335,7 @@ function approxClickOffset(textLayer: HTMLElement, caret: CaretPosition): number
   let node: Node | null = walker.nextNode();
   while (node) {
     if (node === caret.offsetNode) return offset + caret.offset;
-    offset += (node.textContent ?? '').length;
+    offset += (node.textContent ?? "").length;
     node = walker.nextNode();
   }
   return -1;
@@ -341,7 +356,10 @@ function rangeTextOffset(textLayer: HTMLElement, caret: CaretPosition): number {
 }
 
 // Find the smallest normalized index whose original offset >= originalOffset.
-function normalizedFromOriginalOffset(originalOffset: number, map: number[]): number {
+function normalizedFromOriginalOffset(
+  originalOffset: number,
+  map: number[],
+): number {
   if (map.length === 0) return 0;
   let lo = 0;
   let hi = map.length - 1;
@@ -353,18 +371,22 @@ function normalizedFromOriginalOffset(originalOffset: number, map: number[]): nu
   return lo;
 }
 
-function extractParagraph(pageText: string, start: number, _end: number): string {
+function extractParagraph(
+  pageText: string,
+  start: number,
+  _end: number,
+): string {
   const paraStart = lastDoubleNewlineBefore(pageText, start);
   const paraEnd = nextDoubleNewlineAfter(pageText, start);
   return pageText.slice(paraStart, paraEnd).trim();
 }
 
 function lastDoubleNewlineBefore(s: string, from: number): number {
-  const i = s.lastIndexOf('\n\n', from);
+  const i = s.lastIndexOf("\n\n", from);
   return i < 0 ? 0 : i + 2;
 }
 
 function nextDoubleNewlineAfter(s: string, from: number): number {
-  const i = s.indexOf('\n\n', from);
+  const i = s.indexOf("\n\n", from);
   return i < 0 ? s.length : i;
 }

@@ -45,16 +45,16 @@ This document targets **end users** and is split in two halves:
 
 ### Step 1 · Configure your first model preset
 
-Open Zotero `Tools → Plugins`, click the gear icon next to *Zotero AI Sidebar*, and open settings. (Or: open the sidebar with no preset configured — it drops you straight into the "Add preset" form.)
+Open Zotero `Tools → Plugins`, click the gear icon next to _Zotero AI Sidebar_, and open settings. (Or: open the sidebar with no preset configured — it drops you straight into the "Add preset" form.)
 
 Four fields are required:
 
-| Field | Purpose |
-|---|---|
-| Provider | `anthropic` / `openai` / any OpenAI-compatible endpoint |
-| API key | Stored in Zotero prefs **only on this machine**; never uploaded to WebDAV or exports |
-| Base URL | Official endpoint, or your self-hosted reverse proxy |
-| Model | Any model id supported by that endpoint (e.g. `claude-opus-4-7`, `gpt-5`) |
+| Field    | Purpose                                                                              |
+| -------- | ------------------------------------------------------------------------------------ |
+| Provider | `anthropic` / `openai` / any OpenAI-compatible endpoint                              |
+| API key  | Stored in Zotero prefs **only on this machine**; never uploaded to WebDAV or exports |
+| Base URL | Official endpoint, or your self-hosted reverse proxy                                 |
+| Model    | Any model id supported by that endpoint (e.g. `claude-opus-4-7`, `gpt-5`)            |
 
 Click **Test connection** — failures fail loudly. Save the preset.
 
@@ -62,7 +62,7 @@ Click **Test connection** — failures fail loudly. Save the preset.
 
 ### Step 2 · Open the sidebar
 
-The sidebar lives in Zotero's **Item Pane / Reader Context Pane** as the *AI* tab.
+The sidebar lives in Zotero's **Item Pane / Reader Context Pane** as the _AI_ tab.
 
 Pick any paper in the main library. The sidebar binds to that item — chat history, context traces, and notes are kept per-paper.
 
@@ -100,7 +100,7 @@ That closes the loop: **read paper → AI interprets → permanent record in Zot
 
 ### 2.1 Ask the AI to interpret a section
 
-The natural pattern: **select text in the Reader with your mouse**. A *selection chip* (with a character-count preview) appears above the composer. Now ask your question normally.
+The natural pattern: **select text in the Reader with your mouse**. A _selection chip_ (with a character-count preview) appears above the composer. Now ask your question normally.
 
 That turn the model prefers `zotero_get_current_pdf_selection` / `zotero_get_reader_pdf_text` over reading the whole PDF — fewer tokens, more focused answer.
 
@@ -142,10 +142,10 @@ Color mapping: see [§3.9](#39-pdf-highlight-color-rubric).
 
 Type `/` in the composer to surface command suggestions. Two are built-in:
 
-| Command | Usage | Behavior |
-|---|---|---|
+| Command         | Usage                                | Behavior                                                                             |
+| --------------- | ------------------------------------ | ------------------------------------------------------------------------------------ |
 | `/arxiv-search` | `/arxiv-search <query or arXiv URL>` | Model uses `paper_search_arxiv`, optionally followed by `paper_fetch_arxiv_fulltext` |
-| `/web-search` | `/web-search <query>` | Model calls the configured built-in web-search tool (must be enabled provider-side) |
+| `/web-search`   | `/web-search <query>`                | Model calls the configured built-in web-search tool (must be enabled provider-side)  |
 
 Slash commands **do not run business logic locally**. They only inject a prompt fragment ("the user has explicitly chosen this action") and let the model decide which tool calls to make. This is the Codex-style invariant: **no local keyword routing**.
 
@@ -169,7 +169,7 @@ What `state.json` contains:
 
 - ✅ Chat threads (per-paper conversations, thinking, tool traces, image metadata)
 - ✅ Quick prompts, UI settings, the non-secret fields of model presets, tool/MCP settings
-- ✅ Annotations on selected papers (carried by *portable thread keys* so threads survive itemID changes)
+- ✅ Annotations on selected papers (carried by _portable thread keys_ so threads survive itemID changes)
 - ❌ **API keys are not uploaded** (kept in local prefs)
 - ❌ **PDF files are not uploaded** (those go through Zotero File Sync on a separate WebDAV path)
 
@@ -191,17 +191,17 @@ If you don't want WebDAV, plain export/import works:
 
 Each preset is a complete `provider + endpoint + model + parameters` set. Save as many as you like, named.
 
-| Field | Required | Purpose |
-|---|---|---|
-| Provider | ✓ | `anthropic` or `openai`; selects the SDK path |
-| Display name | | Shown in the footer switcher |
-| API key | ✓ | Local prefs only — never uploaded, never exported |
-| Base URL | ✓ | Official endpoint or OpenAI-compatible reverse proxy |
-| Model | ✓ | Model id, e.g. `claude-opus-4-7`, `gpt-5` |
-| Max output tokens | | Output length cap |
-| Max tool iterations | | A **safety fuse** — the maximum tool-loop steps per turn. **Not a task-routing knob.** Setting it too low makes the model abandon PDF reads partway through |
-| Reasoning / Thinking | | Enable reasoning effort (OpenAI) or extended thinking (Anthropic); the model must support it |
-| Agent permission mode | | Governs write tools: blocked / approval-required / YOLO |
+| Field                 | Required | Purpose                                                                                                                                                     |
+| --------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Provider              | ✓        | `anthropic` or `openai`; selects the SDK path                                                                                                               |
+| Display name          |          | Shown in the footer switcher                                                                                                                                |
+| API key               | ✓        | Local prefs only — never uploaded, never exported                                                                                                           |
+| Base URL              | ✓        | Official endpoint or OpenAI-compatible reverse proxy                                                                                                        |
+| Model                 | ✓        | Model id, e.g. `claude-opus-4-7`, `gpt-5`                                                                                                                   |
+| Max output tokens     |          | Output length cap                                                                                                                                           |
+| Max tool iterations   |          | A **safety fuse** — the maximum tool-loop steps per turn. **Not a task-routing knob.** Setting it too low makes the model abandon PDF reads partway through |
+| Reasoning / Thinking  |          | Enable reasoning effort (OpenAI) or extended thinking (Anthropic); the model must support it                                                                |
+| Agent permission mode |          | Governs write tools: blocked / approval-required / YOLO                                                                                                     |
 
 **Test connection** issues a minimal request to validate endpoint + key.
 
@@ -243,27 +243,27 @@ Authoritative names live in `src/context/agent-tools.ts`. Categories:
 
 **Read tools (always enabled):**
 
-| Tool | Purpose |
-|---|---|
-| `zotero_get_current_item` | Title, authors, year, abstract, tags, collections of the bound item |
-| `zotero_get_annotations` | All existing annotations on the current paper |
-| `zotero_search_pdf` | Keyword search across the PDF, returns matching passages |
-| `zotero_read_pdf_range` | Read a specific page or paragraph range |
-| `zotero_get_full_pdf` | Pull the full PDF text in one call (subject to budget in `policy.ts`) |
-| `zotero_get_current_pdf_selection` | Whatever the user has currently selected in the Reader |
-| `zotero_get_reader_pdf_text` | Text of the current page / visible region |
-| `chat_get_previous_context` | Lets the model re-inspect earlier context without polluting main history |
-| `paper_search_arxiv` | arXiv search |
-| `paper_fetch_arxiv_fulltext` | arXiv full text |
+| Tool                               | Purpose                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| `zotero_get_current_item`          | Title, authors, year, abstract, tags, collections of the bound item      |
+| `zotero_get_annotations`           | All existing annotations on the current paper                            |
+| `zotero_search_pdf`                | Keyword search across the PDF, returns matching passages                 |
+| `zotero_read_pdf_range`            | Read a specific page or paragraph range                                  |
+| `zotero_get_full_pdf`              | Pull the full PDF text in one call (subject to budget in `policy.ts`)    |
+| `zotero_get_current_pdf_selection` | Whatever the user has currently selected in the Reader                   |
+| `zotero_get_reader_pdf_text`       | Text of the current page / visible region                                |
+| `chat_get_previous_context`        | Lets the model re-inspect earlier context without polluting main history |
+| `paper_search_arxiv`               | arXiv search                                                             |
+| `paper_fetch_arxiv_fulltext`       | arXiv full text                                                          |
 
 **Write tools (blocked by default, gated by approval / YOLO):**
 
-| Tool | Purpose |
-|---|---|
-| `zotero_add_annotation_to_selection` | Highlight current selection with color + comment |
-| `zotero_add_text_annotation_to_selection` | Text-only annotation at the selection |
-| `zotero_annotate_passage` | Batch-pick sentences across a passage and highlight |
-| `zotero_append_to_note` | Append content to the paper's child note (creates one if missing) |
+| Tool                                      | Purpose                                                           |
+| ----------------------------------------- | ----------------------------------------------------------------- |
+| `zotero_add_annotation_to_selection`      | Highlight current selection with color + comment                  |
+| `zotero_add_text_annotation_to_selection` | Text-only annotation at the selection                             |
+| `zotero_annotate_passage`                 | Batch-pick sentences across a passage and highlight               |
+| `zotero_append_to_note`                   | Append content to the paper's child note (creates one if missing) |
 
 **Safety semantics**: every write call is visible in the trace. YOLO mode is per-preset, not global.
 
@@ -280,14 +280,14 @@ By design slash commands carry **no local logic** — they inject a "user explic
 
 ### 3.5 PDF sentence-translation mode
 
-| Setting | Options |
-|---|---|
-| Trigger | Single-click / double-click |
-| Overlay size | Compact / adaptive |
-| Overlay placement | Above / below the sentence |
-| Context | Sentence only / include paragraph / include full page |
-| Next sentence | `Enter` (default) |
-| Previous sentence | `Shift+Enter` (default) |
+| Setting           | Options                                               |
+| ----------------- | ----------------------------------------------------- |
+| Trigger           | Single-click / double-click                           |
+| Overlay size      | Compact / adaptive                                    |
+| Overlay placement | Above / below the sentence                            |
+| Context           | Sentence only / include paragraph / include full page |
+| Next sentence     | `Enter` (default)                                     |
+| Previous sentence | `Shift+Enter` (default)                               |
 
 When Translate mode is active, Zotero's native selection popup is suppressed to avoid colliding with the translation overlay; it returns when you exit the mode.
 
@@ -295,7 +295,7 @@ Translations are cached by sentence-content hash — re-clicking the same senten
 
 ### 3.6 Quick prompts
 
-A row of **one-click prompts** beside the composer — e.g. *"Summarize"*, *"Explain the method"*, *"Pull out the experimental numbers"*. Each button's label and its prompt template are editable in settings.
+A row of **one-click prompts** beside the composer — e.g. _"Summarize"_, _"Explain the method"_, _"Pull out the experimental numbers"_. Each button's label and its prompt template are editable in settings.
 
 Use it to bind your own high-frequency questions to a single click.
 
@@ -317,32 +317,32 @@ On send, images are passed as **real multimodal inputs** to the provider (not ju
 
 Zotero's six default annotation colors are exposed by hex code. This plugin maps each color to a semantic label (background / problem / method / dataset / results / …) and injects the rubric as a natural-language prompt so the model can pick a color when calling `zotero_add_annotation_to_selection`.
 
-The rubric is editable in settings — for a literature review you might switch to *"established / contested / my critique / …"*; the model will follow.
+The rubric is editable in settings — for a literature review you might switch to _"established / contested / my critique / …"_; the model will follow.
 
 ### 3.10 WebDAV cloud sync
 
-| Item | Behavior |
-|---|---|
-| Endpoint | URL + user + password (use an *app password* where the service offers one) |
-| Push | Uploads the current `state.json` |
-| Pull | Downloads `state.json` and overwrites local state |
-| Conflict policy | No automatic merge — last write wins; *you* are the source of truth |
-| Path stability | Threads carry portable keys, so cross-machine migration survives itemID drift |
+| Item            | Behavior                                                                      |
+| --------------- | ----------------------------------------------------------------------------- |
+| Endpoint        | URL + user + password (use an _app password_ where the service offers one)    |
+| Push            | Uploads the current `state.json`                                              |
+| Pull            | Downloads `state.json` and overwrites local state                             |
+| Conflict policy | No automatic merge — last write wins; _you_ are the source of truth           |
+| Path stability  | Threads carry portable keys, so cross-machine migration survives itemID drift |
 
 `★ The plugin uses a different WebDAV path from Zotero's built-in File Sync. Sharing the same WebDAV account is safe.`
 
 ### 3.11 Config export / import
 
-| Field | Included |
-|---|---|
-| UI settings (nicknames, avatars, theme, action-button placement) | ✅ |
-| Model presets (excluding API keys) | ✅ |
-| Quick prompts | ✅ |
-| Tool / MCP settings | ✅ |
-| API keys | ❌ (security) |
-| Chat history | ❌ (use WebDAV for this) |
+| Field                                                            | Included                 |
+| ---------------------------------------------------------------- | ------------------------ |
+| UI settings (nicknames, avatars, theme, action-button placement) | ✅                       |
+| Model presets (excluding API keys)                               | ✅                       |
+| Quick prompts                                                    | ✅                       |
+| Tool / MCP settings                                              | ✅                       |
+| API keys                                                         | ❌ (security)            |
+| Chat history                                                     | ❌ (use WebDAV for this) |
 
-Right tool when you want to *carry config to a new machine but leave conversations behind*.
+Right tool when you want to _carry config to a new machine but leave conversations behind_.
 
 ### 3.12 Chat history
 
@@ -385,12 +385,12 @@ Right tool when you want to *carry config to a new machine but leave conversatio
 
 Default is no-write. Two paths forward:
 
-- Short-term: ask the AI to *describe* the highlights it wants (text + color), then add them by hand.
+- Short-term: ask the AI to _describe_ the highlights it wants (text + color), then add them by hand.
 - Long-term: enable **YOLO mode** or the appropriate permission mode on that preset (per-preset, not global).
 
 ### "Sidebar jitters when the PDF selection changes"
 
-That's an explicit anti-goal of the design. If you see it, suspect a stale extension or an old build — the selection chip is *explicit* UI and should not trigger a sidebar re-render.
+That's an explicit anti-goal of the design. If you see it, suspect a stale extension or an old build — the selection chip is _explicit_ UI and should not trigger a sidebar re-render.
 
 ### "Copy button drops thinking / tool calls"
 

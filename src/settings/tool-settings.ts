@@ -1,7 +1,7 @@
-import type { PrefsStore } from './storage';
+import type { PrefsStore } from "./storage";
 
-export type WebSearchMode = 'disabled' | 'cached' | 'live';
-export type McpApprovalMode = 'never' | 'always';
+export type WebSearchMode = "disabled" | "cached" | "live";
+export type McpApprovalMode = "never" | "always";
 
 export interface ArxivMcpSettings {
   enabled: boolean;
@@ -40,32 +40,32 @@ export const TEXT_ANNOTATION_FONT_SIZE_MAX = 48;
 export const DEFAULT_TEXT_ANNOTATION_FONT_SIZE = 14;
 
 export const DEFAULT_ANNOTATION_COLOR_GUIDE = [
-  'PDF 注释颜色预设（写入 zotero_annotate_passage 时使用）：',
-  '- #ffd400 黄色：研究背景 / 动机 / 关键上下文。',
-  '- #ff6666 红色：核心问题 / 方法空白 / 关键限制 / 值得质疑处。',
-  '- #2ea8e5 蓝色：任务定义 / 问题设定 / 评价协议。',
-  '- #5fb236 绿色：方法模块 / 模型结构 / 算法机制。',
-  '- #a28ae5 紫色：数据集 / 数据引擎 / 实验设置。',
-  '- #f19837 橙色：实验结果 / 消融 / 定量证据。',
-  '只能使用上面列出的 hex；如果类别不明确，不要强行分彩色，省略 color 使用 Zotero 默认色。',
-].join('\n');
+  "PDF 注释颜色预设（写入 zotero_annotate_passage 时使用）：",
+  "- #ffd400 黄色：研究背景 / 动机 / 关键上下文。",
+  "- #ff6666 红色：核心问题 / 方法空白 / 关键限制 / 值得质疑处。",
+  "- #2ea8e5 蓝色：任务定义 / 问题设定 / 评价协议。",
+  "- #5fb236 绿色：方法模块 / 模型结构 / 算法机制。",
+  "- #a28ae5 紫色：数据集 / 数据引擎 / 实验设置。",
+  "- #f19837 橙色：实验结果 / 消融 / 定量证据。",
+  "只能使用上面列出的 hex；如果类别不明确，不要强行分彩色，省略 color 使用 Zotero 默认色。",
+].join("\n");
 
 export const DEFAULT_TOOL_SETTINGS: ToolSettings = {
-  webSearchMode: 'disabled',
+  webSearchMode: "disabled",
   mcpServers: [],
-  githubToken: '',
+  githubToken: "",
   annotationColorGuide: DEFAULT_ANNOTATION_COLOR_GUIDE,
   textAnnotationFontSize: DEFAULT_TEXT_ANNOTATION_FONT_SIZE,
   arxivMcp: {
     enabled: false,
-    serverLabel: 'arxiv',
-    serverUrl: '',
-    allowedTools: ['search'],
-    requireApproval: 'never',
+    serverLabel: "arxiv",
+    serverUrl: "",
+    allowedTools: ["search"],
+    requireApproval: "never",
   },
 };
 
-const KEY = 'extensions.zotero-ai-sidebar.toolSettings';
+const KEY = "extensions.zotero-ai-sidebar.toolSettings";
 const LABEL_MAX_LENGTH = 64;
 const MAX_MCP_SERVERS = 8;
 const MAX_ANNOTATION_COLOR_GUIDE_CHARS = 4000;
@@ -89,9 +89,9 @@ export function saveToolSettings(
 
 export function normalizeToolSettings(value: unknown): ToolSettings {
   const input =
-    value && typeof value === 'object' ? (value as Partial<ToolSettings>) : {};
+    value && typeof value === "object" ? (value as Partial<ToolSettings>) : {};
   const rawArxiv =
-    input.arxivMcp && typeof input.arxivMcp === 'object'
+    input.arxivMcp && typeof input.arxivMcp === "object"
       ? (input.arxivMcp as Partial<ArxivMcpSettings>)
       : {};
   return {
@@ -115,7 +115,7 @@ export function normalizeToolSettings(value: unknown): ToolSettings {
         DEFAULT_TOOL_SETTINGS.arxivMcp.allowedTools,
       ),
       requireApproval:
-        rawArxiv.requireApproval === 'always' ? 'always' : 'never',
+        rawArxiv.requireApproval === "always" ? "always" : "never",
     },
   };
 }
@@ -127,9 +127,9 @@ function normalizeAnnotationColorGuide(value: unknown): string {
 
 function normalizeTextAnnotationFontSize(value: unknown): number {
   const n =
-    typeof value === 'number'
+    typeof value === "number"
       ? value
-      : typeof value === 'string'
+      : typeof value === "string"
         ? Number(value)
         : NaN;
   if (!Number.isFinite(n)) return DEFAULT_TEXT_ANNOTATION_FONT_SIZE;
@@ -151,7 +151,7 @@ function normalizeMcpServers(value: unknown): McpServerSettings[] {
   const servers: McpServerSettings[] = [];
   const seen = new Set<string>();
   for (const raw of value) {
-    if (!raw || typeof raw !== 'object') continue;
+    if (!raw || typeof raw !== "object") continue;
     const item = raw as Partial<McpServerSettings>;
     const serverLabel = normalizeServerLabel(item.serverLabel);
     const id = uniqueID(stringValue(item.id) || serverLabel, seen);
@@ -161,7 +161,7 @@ function normalizeMcpServers(value: unknown): McpServerSettings[] {
       serverLabel,
       serverUrl: stringValue(item.serverUrl),
       allowedTools: normalizeAllowedTools(item.allowedTools, []),
-      requireApproval: item.requireApproval === 'always' ? 'always' : 'never',
+      requireApproval: item.requireApproval === "always" ? "always" : "never",
     });
     if (servers.length >= MAX_MCP_SERVERS) break;
   }
@@ -169,14 +169,14 @@ function normalizeMcpServers(value: unknown): McpServerSettings[] {
 }
 
 function isWebSearchMode(value: unknown): value is WebSearchMode {
-  return value === 'disabled' || value === 'cached' || value === 'live';
+  return value === "disabled" || value === "cached" || value === "live";
 }
 
 function normalizeAllowedTools(value: unknown, fallback: string[]): string[] {
   const source = Array.isArray(value)
     ? value
-    : typeof value === 'string'
-      ? value.split(',')
+    : typeof value === "string"
+      ? value.split(",")
       : fallback;
   const seen = new Set<string>();
   const tools: string[] = [];
@@ -191,17 +191,18 @@ function normalizeAllowedTools(value: unknown, fallback: string[]): string[] {
 
 function normalizeServerLabel(value: unknown): string {
   const label = stringValue(value)
-    .replace(/[^A-Za-z0-9_-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .replace(/[^A-Za-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
     .slice(0, LABEL_MAX_LENGTH);
   return label || DEFAULT_TOOL_SETTINGS.arxivMcp.serverLabel;
 }
 
 function uniqueID(value: string, seen: Set<string>): string {
-  const base = value
-    .replace(/[^A-Za-z0-9_-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, LABEL_MAX_LENGTH) || `mcp-${seen.size + 1}`;
+  const base =
+    value
+      .replace(/[^A-Za-z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, LABEL_MAX_LENGTH) || `mcp-${seen.size + 1}`;
   let id = base;
   let suffix = 2;
   while (seen.has(id)) id = `${base}-${suffix++}`;
@@ -210,5 +211,5 @@ function uniqueID(value: string, seen: Set<string>): string {
 }
 
 function stringValue(value: unknown): string {
-  return typeof value === 'string' ? value.trim() : '';
+  return typeof value === "string" ? value.trim() : "";
 }

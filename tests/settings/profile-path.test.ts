@@ -19,6 +19,8 @@ describe("profileFilePath", () => {
         "/Users/me/Zotero/Profiles/abc.default/",
         "zotero-ai-sidebar-repo-workspaces.json",
       ),
-    ).toBe("/Users/me/Zotero/Profiles/abc.default/zotero-ai-sidebar-repo-workspaces.json");
+    ).toBe(
+      "/Users/me/Zotero/Profiles/abc.default/zotero-ai-sidebar-repo-workspaces.json",
+    );
   });
 });

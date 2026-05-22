@@ -80,7 +80,12 @@ export function mountOverlay(input: MountOverlayInput): OverlayHandle {
     makeBtn(iframeDoc, "💾", "保存为 Zotero 注释", actions.onSave, true),
   );
   actionsRow.appendChild(
-    makeBtn(iframeDoc, "↻", "重新翻译（忽略缓存并覆盖旧结果）", actions.onRetry),
+    makeBtn(
+      iframeDoc,
+      "↻",
+      "重新翻译（忽略缓存并覆盖旧结果）",
+      actions.onRetry,
+    ),
   );
   actionsRow.appendChild(makeBtn(iframeDoc, "▲", "上一句", actions.onPrev));
   actionsRow.appendChild(makeBtn(iframeDoc, "▼", "下一句", actions.onNext));
@@ -231,15 +236,19 @@ export function mountSelectionPopupGuard(doc: Document): { destroy(): void } {
     if (!nodes) return;
     nodes.forEach((el: Element) => {
       hidePopup(el);
-      guardLog("hid existing .selection-popup", { tag: (el as HTMLElement).tagName });
+      guardLog("hid existing .selection-popup", {
+        tag: (el as HTMLElement).tagName,
+      });
     });
   };
   for (const targetDoc of docs) {
     try {
       scanAndHide(targetDoc);
-      const view = targetDoc.defaultView as Window & {
-        MutationObserver?: typeof MutationObserver;
-      } | null;
+      const view = targetDoc.defaultView as
+        | (Window & {
+            MutationObserver?: typeof MutationObserver;
+          })
+        | null;
       const Observer = view?.MutationObserver ?? MutationObserver;
       if (!targetDoc.body) continue;
       const observer = new Observer((mutations: MutationRecord[]) => {
@@ -293,8 +302,11 @@ function buildObserverOptions(view: Window | null): MutationObserverInit {
     const Cu =
       (view as unknown as { Components?: { utils?: { cloneInto?: Function } } })
         .Components?.utils ??
-      (globalThis as unknown as { Components?: { utils?: { cloneInto?: Function } } })
-        .Components?.utils;
+      (
+        globalThis as unknown as {
+          Components?: { utils?: { cloneInto?: Function } };
+        }
+      ).Components?.utils;
     if (typeof Cu?.cloneInto === "function") {
       return Cu.cloneInto(fallback, view) as MutationObserverInit;
     }
@@ -304,9 +316,11 @@ function buildObserverOptions(view: Window | null): MutationObserverInit {
   // Fallback: construct via the target realm's Object so properties
   // are owned by that compartment.
   try {
-    const ViewObject = (view as unknown as { Object?: ObjectConstructor }).Object;
+    const ViewObject = (view as unknown as { Object?: ObjectConstructor })
+      .Object;
     if (ViewObject) {
-      const obj = new ViewObject() as MutationObserverInit & Record<string, unknown>;
+      const obj = new ViewObject() as MutationObserverInit &
+        Record<string, unknown>;
       obj.childList = true;
       obj.subtree = true;
       return obj;
@@ -634,8 +648,12 @@ function measureOverlayHeight(overlay: HTMLElement): number {
 }
 
 function fitOverlayBody(overlay: HTMLElement, maxHeight: number): void {
-  const body = overlay.querySelector<HTMLElement>(".zai-translate-overlay__body");
-  const meta = overlay.querySelector<HTMLElement>(".zai-translate-overlay__meta");
+  const body = overlay.querySelector<HTMLElement>(
+    ".zai-translate-overlay__body",
+  );
+  const meta = overlay.querySelector<HTMLElement>(
+    ".zai-translate-overlay__meta",
+  );
   const actions = overlay.querySelector<HTMLElement>(
     ".zai-translate-overlay__actions",
   );
@@ -645,8 +663,7 @@ function fitOverlayBody(overlay: HTMLElement, maxHeight: number): void {
   const bodyStyle = win?.getComputedStyle(body);
   const paddingY =
     px(overlayStyle?.paddingTop) + px(overlayStyle?.paddingBottom);
-  const bodyMargins =
-    px(bodyStyle?.marginTop) + px(bodyStyle?.marginBottom);
+  const bodyMargins = px(bodyStyle?.marginTop) + px(bodyStyle?.marginBottom);
   const fixedHeight =
     measureOverlayHeight(meta) + measureOverlayHeight(actions) + paddingY;
   const bodyMax = Math.max(28, maxHeight - fixedHeight - bodyMargins - 4);
@@ -729,21 +746,26 @@ function fallbackViewportRectForPdfRect(
 function pdfPageViewport(
   doc: Document,
   pageIndex: number,
-): { convertToViewportPoint: (x: number, y: number) => [number, number] } | null {
+): {
+  convertToViewportPoint: (x: number, y: number) => [number, number];
+} | null {
   const win = doc.defaultView as
     | (Window & {
         PDFViewerApplication?: unknown;
         wrappedJSObject?: { PDFViewerApplication?: unknown };
       })
     | null;
-  const app = win?.PDFViewerApplication ?? win?.wrappedJSObject?.PDFViewerApplication;
+  const app =
+    win?.PDFViewerApplication ?? win?.wrappedJSObject?.PDFViewerApplication;
   const page = (app as { pdfViewer?: { _pages?: unknown[] } } | null)?.pdfViewer
     ?._pages?.[pageIndex] as { viewport?: unknown } | undefined;
   const viewport = page?.viewport as
     | { convertToViewportPoint?: (x: number, y: number) => [number, number] }
     | undefined;
   return typeof viewport?.convertToViewportPoint === "function"
-    ? (viewport as { convertToViewportPoint: (x: number, y: number) => [number, number] })
+    ? (viewport as {
+        convertToViewportPoint: (x: number, y: number) => [number, number];
+      })
     : null;
 }
 

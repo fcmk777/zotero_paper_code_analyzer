@@ -33,8 +33,12 @@ describe("repo workspace storage", () => {
   it("saves a workspace and binds it per item", async () => {
     const workspace = fixtureWorkspace("github:o/r@sha");
 
-    await expect(saveRepoWorkspace(workspace)).resolves.toMatchObject({ ok: true });
-    await expect(bindRepoWorkspaceToItem(1, workspace.workspaceId)).resolves.toMatchObject({ ok: true });
+    await expect(saveRepoWorkspace(workspace)).resolves.toMatchObject({
+      ok: true,
+    });
+    await expect(
+      bindRepoWorkspaceToItem(1, workspace.workspaceId),
+    ).resolves.toMatchObject({ ok: true });
     await expect(loadBoundRepoWorkspace(1)).resolves.toMatchObject({
       ok: true,
       workspace: { workspaceId: workspace.workspaceId },

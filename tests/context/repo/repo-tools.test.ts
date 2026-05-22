@@ -95,8 +95,12 @@ describe("repo workspace tools", () => {
     const moduleMap = JSON.parse(
       (await byName.get("repo_get_module_map")!.execute({})).output,
     );
-    expect(moduleMap.moduleMap.likelyPipelines.modelFiles).toContain("src/models/model.py");
-    expect(moduleMap.moduleMap.likelyPipelines.trainingFiles).toContain("train.py");
+    expect(moduleMap.moduleMap.likelyPipelines.modelFiles).toContain(
+      "src/models/model.py",
+    );
+    expect(moduleMap.moduleMap.likelyPipelines.trainingFiles).toContain(
+      "train.py",
+    );
 
     const read = JSON.parse(
       (
@@ -130,9 +134,11 @@ function mockFetch(): typeof fetch {
       "import torch\n\nclass Net:\n    def forward(self, x):\n        return x\n",
     ),
     "o-r-sha/train.py": strToU8(
-      "from src.models.model import Net\n\nif __name__ == \"__main__\":\n    Net()\n",
+      'from src.models.model import Net\n\nif __name__ == "__main__":\n    Net()\n',
     ),
-    "o-r-sha/losses/criterion.py": strToU8("def loss(x, y):\n    return x - y\n"),
+    "o-r-sha/losses/criterion.py": strToU8(
+      "def loss(x, y):\n    return x - y\n",
+    ),
     "o-r-sha/data/dataset.py": strToU8("class Dataset:\n    pass\n"),
     "o-r-sha/docs/example.py": strToU8("print('skip')\n"),
     "o-r-sha/assets/pic.bin": new Uint8Array([1, 2, 0, 3]),
@@ -141,7 +147,10 @@ function mockFetch(): typeof fetch {
     const value = String(url);
     if (value === "https://api.github.com/repos/o/r") {
       return new Response(
-        JSON.stringify({ default_branch: "main", html_url: "https://github.com/o/r" }),
+        JSON.stringify({
+          default_branch: "main",
+          html_url: "https://github.com/o/r",
+        }),
         { status: 200, headers: { "content-type": "application/json" } },
       );
     }

@@ -1006,7 +1006,8 @@ button:disabled,
   margin-left: 0;
 }
 
-.bubble-assistant.bubble-actions-inside.bubble-actions-bottom-right .bubble-actions {
+.bubble-assistant.bubble-actions-inside.bubble-actions-bottom-right
+  .bubble-actions {
   right: 0;
   bottom: 2px;
 }

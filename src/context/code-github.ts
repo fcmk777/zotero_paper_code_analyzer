@@ -26,7 +26,9 @@ export interface CodeToolError {
   detail?: string;
 }
 
-export type CodeResult<T> = ({ ok: true } & T) | { ok: false; error: CodeToolError };
+export type CodeResult<T> =
+  | ({ ok: true } & T)
+  | { ok: false; error: CodeToolError };
 
 export interface ParsedGitHubRepo {
   owner: string;
@@ -189,7 +191,9 @@ export async function fetchRepoTree(
     );
   }
   const tree = (result.value.tree ?? [])
-    .filter((entry): entry is GitHubTreeFile => entry.type === "blob" && !!entry.path)
+    .filter(
+      (entry): entry is GitHubTreeFile => entry.type === "blob" && !!entry.path,
+    )
     .slice(0, policy.codeRepoTreeMaxEntries)
     .map((entry) => ({
       path: entry.path,
@@ -218,10 +222,18 @@ export async function readGitHubFile(
   if (!result.ok) return result;
   const value = result.value;
   if (value.type !== "file" || !value.content) {
-    return codeError("FILE_READ_FAILED", `无法读取文件：${path}`, "GitHub contents API did not return a file.");
+    return codeError(
+      "FILE_READ_FAILED",
+      `无法读取文件：${path}`,
+      "GitHub contents API did not return a file.",
+    );
   }
   if (value.encoding !== "base64") {
-    return codeError("FILE_READ_FAILED", `无法读取文件：${path}`, `Unsupported encoding: ${value.encoding ?? "unknown"}`);
+    return codeError(
+      "FILE_READ_FAILED",
+      `无法读取文件：${path}`,
+      `Unsupported encoding: ${value.encoding ?? "unknown"}`,
+    );
   }
   try {
     return {
@@ -298,7 +310,10 @@ async function githubJson<T>(
   const fetchImpl = options.fetchImpl ?? globalThis.fetch;
   const policy = options.policy ?? DEFAULT_CODE_CONTEXT_POLICY;
   if (typeof fetchImpl !== "function") {
-    return codeError("UNKNOWN_ERROR", "当前环境不支持 fetch，无法访问 GitHub API。");
+    return codeError(
+      "UNKNOWN_ERROR",
+      "当前环境不支持 fetch，无法访问 GitHub API。",
+    );
   }
 
   let lastError: CodeResult<{ value: T }> | null = null;
@@ -313,7 +328,9 @@ async function githubJson<T>(
           headers: {
             Accept: "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
-            ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
+            ...(options.token
+              ? { Authorization: `Bearer ${options.token}` }
+              : {}),
           },
         },
         policy.githubRequestTimeoutMs,
@@ -337,7 +354,10 @@ async function githubJson<T>(
     if (!response.ok) {
       const mapped = githubHttpError(response, body);
       lastError = mapped;
-      if (attempt < attempts && shouldRetryStatus(response.status, mapped.error.code)) {
+      if (
+        attempt < attempts &&
+        shouldRetryStatus(response.status, mapped.error.code)
+      ) {
         await delay(500 * attempt);
         continue;
       }
@@ -386,7 +406,8 @@ function shouldRetryStatus(status: number, code: CodeErrorCode): boolean {
 }
 
 function isTimeoutError(err: unknown): boolean {
-  const message = err instanceof Error ? `${err.name} ${err.message}` : String(err);
+  const message =
+    err instanceof Error ? `${err.name} ${err.message}` : String(err);
   return /abort|timeout/i.test(message);
 }
 
@@ -481,8 +502,10 @@ function encodePath(path: string): string {
 
 function decodeBase64(value: string): string {
   const normalized = value.replace(/\s/g, "");
-  const maybeBuffer = (globalThis as unknown as { Buffer?: typeof Buffer }).Buffer;
-  if (maybeBuffer) return maybeBuffer.from(normalized, "base64").toString("utf-8");
+  const maybeBuffer = (globalThis as unknown as { Buffer?: typeof Buffer })
+    .Buffer;
+  if (maybeBuffer)
+    return maybeBuffer.from(normalized, "base64").toString("utf-8");
   const binary = globalThis.atob(normalized);
   const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
   return new TextDecoder().decode(bytes);

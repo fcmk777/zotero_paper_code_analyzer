@@ -99,10 +99,20 @@ export function scoreRepoFile(
 
   if (extension === ".md") {
     score += filename.startsWith("readme") ? 10 : -18;
-    reasons.push(filename.startsWith("readme") ? "readme context" : "markdown lower priority");
+    reasons.push(
+      filename.startsWith("readme")
+        ? "readme context"
+        : "markdown lower priority",
+    );
   }
-  if (extension === ".json" || extension === ".yaml" || extension === ".yml" || extension === ".toml") {
-    score -= filename.includes("config") || lowerPath.includes("config") ? 0 : 8;
+  if (
+    extension === ".json" ||
+    extension === ".yaml" ||
+    extension === ".yml" ||
+    extension === ".toml"
+  ) {
+    score -=
+      filename.includes("config") || lowerPath.includes("config") ? 0 : 8;
     reasons.push("configuration-like file");
   }
 
@@ -120,7 +130,9 @@ export function scoreRepoFile(
     type: "blob",
     ...(typeof file.size === "number" ? { size: file.size } : {}),
     score,
-    reason: reasons.length ? dedupe(reasons).join(" + ") : `allowed extension: ${extension}`,
+    reason: reasons.length
+      ? dedupe(reasons).join(" + ")
+      : `allowed extension: ${extension}`,
   };
 }
 
@@ -200,10 +212,7 @@ export function formatFileRangeWithLineNumbers(
   const totalLines = lines.length;
   const safeStart = Math.max(1, Math.floor(startLine));
   const maxEnd = Math.min(totalLines, safeStart + policy.codeRangeMaxLines - 1);
-  const safeEnd = Math.min(
-    Math.max(safeStart, Math.floor(endLine)),
-    maxEnd,
-  );
+  const safeEnd = Math.min(Math.max(safeStart, Math.floor(endLine)), maxEnd);
   const selected = lines.slice(safeStart - 1, safeEnd);
   const numbered = selected
     .map(
@@ -302,10 +311,7 @@ export function normalizeRepoPath(path: string): string {
   return path.replace(/\\/g, "/").replace(/^\/+/, "").replace(/\/+/g, "/");
 }
 
-function hasSkippedDir(
-  path: string,
-  policy: CodeContextPolicy,
-): boolean {
+function hasSkippedDir(path: string, policy: CodeContextPolicy): boolean {
   const skip = new Set(policy.codeSkipDirs.map((dir) => dir.toLowerCase()));
   const parts = normalizeRepoPath(path).split("/");
   return parts.slice(0, -1).some((part) => skip.has(part.toLowerCase()));

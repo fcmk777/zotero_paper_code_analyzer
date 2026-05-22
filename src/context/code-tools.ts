@@ -77,14 +77,21 @@ export function createCodeAnalysisTools(
         "Bind a GitHub repository URL to the current Zotero item. Use when the user provides a GitHub repo for the current paper. This is a visible write to plugin-local storage.",
       parameters: objectSchema(
         {
-          githubUrl: stringSchema("GitHub repository URL, e.g. https://github.com/owner/repo."),
-          branch: stringSchema("Optional branch name. Overrides a /tree/<branch> URL branch."),
+          githubUrl: stringSchema(
+            "GitHub repository URL, e.g. https://github.com/owner/repo.",
+          ),
+          branch: stringSchema(
+            "Optional branch name. Overrides a /tree/<branch> URL branch.",
+          ),
         },
         ["githubUrl"],
       ),
       execute: async (args) => {
         const itemID = currentItemID(options);
-        if (itemID == null) return resultFromError(codeError("NO_CURRENT_ITEM", "当前没有选中的 Zotero 条目。"));
+        if (itemID == null)
+          return resultFromError(
+            codeError("NO_CURRENT_ITEM", "当前没有选中的 Zotero 条目。"),
+          );
         const parsed = objectArgs(args);
         const githubUrl = stringArg(parsed, "githubUrl");
         const branch = stringArg(parsed, "branch");
@@ -116,13 +123,21 @@ export function createCodeAnalysisTools(
       description:
         "Fetch and summarize the GitHub repository file tree for paper-code analysis. The harness filters noisy directories and returns bounded scored source-file candidates, not the full tree.",
       parameters: objectSchema({
-        githubUrl: stringSchema("Optional GitHub repository URL. If omitted, use the current Zotero item's bound repository."),
-        branch: stringSchema("Optional branch name. Overrides the bound or URL branch."),
+        githubUrl: stringSchema(
+          "Optional GitHub repository URL. If omitted, use the current Zotero item's bound repository.",
+        ),
+        branch: stringSchema(
+          "Optional branch name. Overrides the bound or URL branch.",
+        ),
       }),
       execute: async (args) => {
         const repo = await resolveRepository(options, objectArgs(args), false);
         if (!repo.ok) return resultFromError(repo);
-        const tree = await fetchRepoTree(repo.repository, repo.branch, githubOptions(options, policy));
+        const tree = await fetchRepoTree(
+          repo.repository,
+          repo.branch,
+          githubOptions(options, policy),
+        );
         if (!tree.ok) return resultFromError(tree);
         const candidates = filterRepoTreeFiles(tree.tree, policy);
         return jsonResult(
@@ -149,16 +164,26 @@ export function createCodeAnalysisTools(
       description:
         "Select the most relevant source files for paper-code analysis using deterministic repository path scoring, analysis sections, optional keywords, and current Zotero metadata. Use before reading code files.",
       parameters: objectSchema({
-        githubUrl: stringSchema("Optional GitHub repository URL. If omitted, use the current Zotero item's bound repository."),
+        githubUrl: stringSchema(
+          "Optional GitHub repository URL. If omitted, use the current Zotero item's bound repository.",
+        ),
         branch: stringSchema("Optional branch name."),
-        analysisSections: arraySchema("Analysis sections requested by the user, e.g. 模型架构, 训练流程, 主要创新, 数据流/调用链."),
-        extraKeywords: arraySchema("Optional extra keywords from the paper title, abstract, or user goal."),
+        analysisSections: arraySchema(
+          "Analysis sections requested by the user, e.g. 模型架构, 训练流程, 主要创新, 数据流/调用链.",
+        ),
+        extraKeywords: arraySchema(
+          "Optional extra keywords from the paper title, abstract, or user goal.",
+        ),
       }),
       execute: async (args) => {
         const parsed = objectArgs(args);
         const repo = await resolveRepository(options, parsed, false);
         if (!repo.ok) return resultFromError(repo);
-        const tree = await fetchRepoTree(repo.repository, repo.branch, githubOptions(options, policy));
+        const tree = await fetchRepoTree(
+          repo.repository,
+          repo.branch,
+          githubOptions(options, policy),
+        );
         if (!tree.ok) return resultFromError(tree);
         const selected = await selectWithContextBoost(
           tree.tree,
@@ -195,8 +220,12 @@ export function createCodeAnalysisTools(
         "Read selected GitHub source files from the top and inject stable line numbers. Use only after selecting specific paths. If a large file is truncated and needed symbols are missing, call code_search_in_files and code_read_file_ranges_with_line_numbers instead of guessing. The report must cite only file paths and line numbers returned by these tools.",
       parameters: objectSchema(
         {
-          paths: arraySchema("Repository-relative source paths selected for analysis."),
-          githubUrl: stringSchema("Optional GitHub repository URL. If omitted, use the current Zotero item's bound repository."),
+          paths: arraySchema(
+            "Repository-relative source paths selected for analysis.",
+          ),
+          githubUrl: stringSchema(
+            "Optional GitHub repository URL. If omitted, use the current Zotero item's bound repository.",
+          ),
           branch: stringSchema("Optional branch name."),
         },
         ["paths"],
@@ -214,13 +243,21 @@ export function createCodeAnalysisTools(
         }
         const repo = await resolveRepository(options, parsed, true);
         if (!repo.ok) return resultFromError(repo);
-        const read = await readRequestedFiles(repo.repository, repo.branch, paths, options, policy);
+        const read = await readRequestedFiles(
+          repo.repository,
+          repo.branch,
+          paths,
+          options,
+          policy,
+        );
         if (!read.files.length) {
           return resultFromError(
             codeError(
               "FILE_READ_FAILED",
               "没有成功读取任何源码文件。",
-              read.failures.map((failure) => `${failure.path}: ${failure.error.message}`).join("; "),
+              read.failures
+                .map((failure) => `${failure.path}: ${failure.error.message}`)
+                .join("; "),
             ),
           );
         }
@@ -251,8 +288,12 @@ export function createCodeAnalysisTools(
       parameters: objectSchema(
         {
           paths: arraySchema("Repository-relative source paths to search."),
-          queries: arraySchema("Search keywords, class names, or function names, e.g. forward, class Motus, __init__."),
-          githubUrl: stringSchema("Optional GitHub repository URL. If omitted, use the current Zotero item's bound repository."),
+          queries: arraySchema(
+            "Search keywords, class names, or function names, e.g. forward, class Motus, __init__.",
+          ),
+          githubUrl: stringSchema(
+            "Optional GitHub repository URL. If omitted, use the current Zotero item's bound repository.",
+          ),
           branch: stringSchema("Optional branch name."),
         },
         ["paths", "queries"],
@@ -271,15 +312,23 @@ export function createCodeAnalysisTools(
         }
         const repo = await resolveRepository(options, parsed, true);
         if (!repo.ok) return resultFromError(repo);
-        const read = await readRequestedFiles(repo.repository, repo.branch, paths, options, policy);
-        const matches = read.files.flatMap((file) =>
-          searchSourceContent(
-            file.path,
-            file.content,
-            queries,
-            Math.max(1, policy.codeSearchMaxMatches - read.files.length),
-          ),
-        ).slice(0, policy.codeSearchMaxMatches);
+        const read = await readRequestedFiles(
+          repo.repository,
+          repo.branch,
+          paths,
+          options,
+          policy,
+        );
+        const matches = read.files
+          .flatMap((file) =>
+            searchSourceContent(
+              file.path,
+              file.content,
+              queries,
+              Math.max(1, policy.codeSearchMaxMatches - read.files.length),
+            ),
+          )
+          .slice(0, policy.codeSearchMaxMatches);
         return jsonResult(
           {
             ok: true,
@@ -318,7 +367,9 @@ export function createCodeAnalysisTools(
               additionalProperties: false,
             },
           },
-          githubUrl: stringSchema("Optional GitHub repository URL. If omitted, use the current Zotero item's bound repository."),
+          githubUrl: stringSchema(
+            "Optional GitHub repository URL. If omitted, use the current Zotero item's bound repository.",
+          ),
           branch: stringSchema("Optional branch name."),
         },
         ["ranges"],
@@ -336,9 +387,19 @@ export function createCodeAnalysisTools(
         }
         const repo = await resolveRepository(options, parsed, true);
         if (!repo.ok) return resultFromError(repo);
-        const uniquePaths = Array.from(new Set(ranges.map((range) => range.path)));
-        const read = await readRequestedFiles(repo.repository, repo.branch, uniquePaths, options, policy);
-        const byPath = new Map(read.files.map((file) => [file.path, file.content]));
+        const uniquePaths = Array.from(
+          new Set(ranges.map((range) => range.path)),
+        );
+        const read = await readRequestedFiles(
+          repo.repository,
+          repo.branch,
+          uniquePaths,
+          options,
+          policy,
+        );
+        const byPath = new Map(
+          read.files.map((file) => [file.path, file.content]),
+        );
         const files = [];
         let totalChars = 0;
         for (const range of ranges) {
@@ -360,7 +421,9 @@ export function createCodeAnalysisTools(
             codeError(
               "FILE_READ_FAILED",
               "没有成功读取任何源码行段。",
-              read.failures.map((failure) => `${failure.path}: ${failure.error.message}`).join("; "),
+              read.failures
+                .map((failure) => `${failure.path}: ${failure.error.message}`)
+                .join("; "),
             ),
           );
         }
@@ -388,7 +451,9 @@ export function createCodeAnalysisTools(
       description:
         "Read the repository README excerpt to understand the project entry points and author-provided usage notes. Use as lightweight context before deeper source reads.",
       parameters: objectSchema({
-        githubUrl: stringSchema("Optional GitHub repository URL. If omitted, use the current Zotero item's bound repository."),
+        githubUrl: stringSchema(
+          "Optional GitHub repository URL. If omitted, use the current Zotero item's bound repository.",
+        ),
         branch: stringSchema("Optional branch name."),
       }),
       execute: async (args) => {
@@ -422,15 +487,22 @@ export function createCodeAnalysisTools(
       requiresApproval: true,
       parameters: objectSchema(
         {
-          githubUrl: stringSchema("GitHub repository URL used for the analysis. If omitted, use the bound repository."),
-          analysisMarkdown: stringSchema("Complete Markdown analysis report to persist."),
+          githubUrl: stringSchema(
+            "GitHub repository URL used for the analysis. If omitted, use the bound repository.",
+          ),
+          analysisMarkdown: stringSchema(
+            "Complete Markdown analysis report to persist.",
+          ),
           sections: arraySchema("Analysis sections included in the report."),
         },
         ["analysisMarkdown"],
       ),
       execute: async (args) => {
         const itemID = currentItemID(options);
-        if (itemID == null) return resultFromError(codeError("NO_CURRENT_ITEM", "当前没有选中的 Zotero 条目。"));
+        if (itemID == null)
+          return resultFromError(
+            codeError("NO_CURRENT_ITEM", "当前没有选中的 Zotero 条目。"),
+          );
         const parsed = objectArgs(args);
         const markdown = stringArg(parsed, "analysisMarkdown");
         if (!markdown) {
@@ -519,7 +591,10 @@ async function resolveRepository(
   if (!parsed.ok) return parsed;
   let branch = explicitBranch || parsed.branch || "";
   if (!branch && requireBranch) {
-    const defaultBranch = await fetchDefaultBranch(parsed, githubOptions(options, options.policy ?? DEFAULT_CODE_CONTEXT_POLICY));
+    const defaultBranch = await fetchDefaultBranch(
+      parsed,
+      githubOptions(options, options.policy ?? DEFAULT_CODE_CONTEXT_POLICY),
+    );
     if (!defaultBranch.ok) return defaultBranch;
     branch = defaultBranch.branch;
   }
@@ -542,7 +617,10 @@ async function selectWithContextBoost(
 ): Promise<ScoredRepoFile[]> {
   const selected = selectRelevantFiles(tree, {
     ...policy,
-    codeMaxSelectedFiles: Math.max(policy.codeMaxSelectedFiles * 3, policy.codeMaxSelectedFiles),
+    codeMaxSelectedFiles: Math.max(
+      policy.codeMaxSelectedFiles * 3,
+      policy.codeMaxSelectedFiles,
+    ),
   });
   const metadata = await readCurrentMetadataKeywords(options);
   const keywords = [...analysisSections, ...extraKeywords, ...metadata]
@@ -552,7 +630,9 @@ async function selectWithContextBoost(
   return selected
     .map((file) => {
       const lower = file.path.toLowerCase();
-      const matched = keywords.filter((keyword) => lower.includes(keyword.toLowerCase()));
+      const matched = keywords.filter((keyword) =>
+        lower.includes(keyword.toLowerCase()),
+      );
       return matched.length
         ? {
             ...file,
@@ -590,10 +670,16 @@ async function readRequestedFiles(
   policy: CodeContextPolicy,
 ): Promise<{
   files: Array<{ path: string; content: string }>;
-  failures: Array<{ path: string; error: { code: string; message: string; detail?: string } }>;
+  failures: Array<{
+    path: string;
+    error: { code: string; message: string; detail?: string };
+  }>;
 }> {
   const files: Array<{ path: string; content: string }> = [];
-  const failures: Array<{ path: string; error: { code: string; message: string; detail?: string } }> = [];
+  const failures: Array<{
+    path: string;
+    error: { code: string; message: string; detail?: string };
+  }> = [];
   for (const path of paths) {
     if (!isAllowedSourcePath(path, policy)) {
       failures.push({
@@ -605,7 +691,12 @@ async function readRequestedFiles(
       });
       continue;
     }
-    const result = await readGitHubFile(repo, path, branch, githubOptions(options, policy));
+    const result = await readGitHubFile(
+      repo,
+      path,
+      branch,
+      githubOptions(options, policy),
+    );
     if (!result.ok) {
       failures.push({ path, error: result.error });
       continue;
@@ -644,7 +735,10 @@ function jsonResult(value: unknown, summary: string): ToolExecutionResult {
   };
 }
 
-function resultFromError(result: { ok: false; error: unknown }): ToolExecutionResult {
+function resultFromError(result: {
+  ok: false;
+  error: unknown;
+}): ToolExecutionResult {
   const error = result.error;
   const message =
     error && typeof error === "object" && "message" in error
@@ -695,7 +789,10 @@ function stringArg(args: Record<string, unknown>, key: string): string {
 function stringArrayArg(args: Record<string, unknown>, key: string): string[] {
   const value = args[key];
   return Array.isArray(value)
-    ? value.filter((entry): entry is string => typeof entry === "string").map((entry) => entry.trim()).filter(Boolean)
+    ? value
+        .filter((entry): entry is string => typeof entry === "string")
+        .map((entry) => entry.trim())
+        .filter(Boolean)
     : [];
 }
 
@@ -716,7 +813,13 @@ function rangeArgs(
       typeof record.endLine === "number" && Number.isFinite(record.endLine)
         ? Math.floor(record.endLine)
         : null;
-    if (!path || startLine == null || endLine == null || startLine < 1 || endLine < startLine) {
+    if (
+      !path ||
+      startLine == null ||
+      endLine == null ||
+      startLine < 1 ||
+      endLine < startLine
+    ) {
       return [];
     }
     return [{ path, startLine, endLine }];

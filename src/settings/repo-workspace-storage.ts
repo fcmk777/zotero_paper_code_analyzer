@@ -45,7 +45,11 @@ export async function saveRepoWorkspace(
     });
     return { ok: true, workspace };
   } catch (err) {
-    return storageError("WORKSPACE_WRITE_FAILED", "保存 Repo Workspace 失败。", err);
+    return storageError(
+      "WORKSPACE_WRITE_FAILED",
+      "保存 Repo Workspace 失败。",
+      err,
+    );
   }
 }
 
@@ -78,7 +82,11 @@ export async function bindRepoWorkspaceToItem(
   workspaceId: string,
 ): Promise<RepoResult<{ itemID: number; workspaceId: string }>> {
   if (itemID == null) {
-    return repoError("NO_CURRENT_ZOTERO_ITEM", "当前没有选中的 Zotero 条目。", true);
+    return repoError(
+      "NO_CURRENT_ZOTERO_ITEM",
+      "当前没有选中的 Zotero 条目。",
+      true,
+    );
   }
   try {
     await queuedWrite(async (stored) => {
@@ -87,7 +95,11 @@ export async function bindRepoWorkspaceToItem(
     });
     return { ok: true, itemID, workspaceId };
   } catch (err) {
-    return storageError("WORKSPACE_WRITE_FAILED", "保存当前条目的 workspace 绑定失败。", err);
+    return storageError(
+      "WORKSPACE_WRITE_FAILED",
+      "保存当前条目的 workspace 绑定失败。",
+      err,
+    );
   }
 }
 
@@ -95,7 +107,11 @@ export async function loadBoundRepoWorkspaceId(
   itemID: number | null,
 ): Promise<RepoResult<{ itemID: number; workspaceId: string }>> {
   if (itemID == null) {
-    return repoError("NO_CURRENT_ZOTERO_ITEM", "当前没有选中的 Zotero 条目。", true);
+    return repoError(
+      "NO_CURRENT_ZOTERO_ITEM",
+      "当前没有选中的 Zotero 条目。",
+      true,
+    );
   }
   const stored = await readStored();
   const workspaceId = stored.bindings?.[bindingKey(itemID)];
@@ -130,7 +146,11 @@ export async function savePaperContextDigest(
     });
     return { ok: true, digest };
   } catch (err) {
-    return storageError("WORKSPACE_WRITE_FAILED", "保存论文上下文摘要失败。", err);
+    return storageError(
+      "WORKSPACE_WRITE_FAILED",
+      "保存论文上下文摘要失败。",
+      err,
+    );
   }
 }
 
@@ -138,7 +158,11 @@ export async function loadPaperContextDigest(
   itemID: number | null,
 ): Promise<RepoResult<{ digest: PaperContextDigest }>> {
   if (itemID == null) {
-    return repoError("NO_CURRENT_ZOTERO_ITEM", "当前没有选中的 Zotero 条目。", true);
+    return repoError(
+      "NO_CURRENT_ZOTERO_ITEM",
+      "当前没有选中的 Zotero 条目。",
+      true,
+    );
   }
   const stored = await readStored();
   const digest = stored.paperDigests?.[String(itemID)];
@@ -160,11 +184,19 @@ export async function saveRepoAnalysisReport(
   options: StorageOptions = {},
 ): Promise<RepoResult<{ report: RepoAnalysisReport }>> {
   if (itemID == null) {
-    return repoError("NO_CURRENT_ZOTERO_ITEM", "当前没有选中的 Zotero 条目。", true);
+    return repoError(
+      "NO_CURRENT_ZOTERO_ITEM",
+      "当前没有选中的 Zotero 条目。",
+      true,
+    );
   }
   const markdown = input.markdown.trim();
   if (!markdown) {
-    return repoError("WORKSPACE_WRITE_FAILED", "保存分析报告需要非空 Markdown。", true);
+    return repoError(
+      "WORKSPACE_WRITE_FAILED",
+      "保存分析报告需要非空 Markdown。",
+      true,
+    );
   }
   const key = reportKey(itemID, workspace.workspaceId);
   const now = options.now?.() ?? Date.now();
@@ -190,7 +222,11 @@ export async function saveRepoAnalysisReport(
     });
     return { ok: true, report: saved! };
   } catch (err) {
-    return storageError("WORKSPACE_WRITE_FAILED", "保存代码讲解报告失败。", err);
+    return storageError(
+      "WORKSPACE_WRITE_FAILED",
+      "保存代码讲解报告失败。",
+      err,
+    );
   }
 }
 
@@ -199,7 +235,11 @@ export async function loadRepoAnalysisReport(
   workspaceId?: string,
 ): Promise<RepoResult<{ report: RepoAnalysisReport }>> {
   if (itemID == null) {
-    return repoError("NO_CURRENT_ZOTERO_ITEM", "当前没有选中的 Zotero 条目。", true);
+    return repoError(
+      "NO_CURRENT_ZOTERO_ITEM",
+      "当前没有选中的 Zotero 条目。",
+      true,
+    );
   }
   const stored = await readStored();
   const targetWorkspaceId =
@@ -231,11 +271,13 @@ export function reportKey(itemID: number, workspaceId: string): string {
 async function queuedWrite(
   updater: (stored: StoredRepoWorkspaces) => void,
 ): Promise<void> {
-  writeQueue = writeQueue.catch(() => undefined).then(async () => {
-    const stored = await readStored();
-    updater(stored);
-    await writeStored(stored);
-  });
+  writeQueue = writeQueue
+    .catch(() => undefined)
+    .then(async () => {
+      const stored = await readStored();
+      updater(stored);
+      await writeStored(stored);
+    });
   await writeQueue;
 }
 
@@ -246,7 +288,8 @@ async function readStored(): Promise<StoredRepoWorkspaces> {
       "utf-8",
     );
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+      return {};
     return parsed as StoredRepoWorkspaces;
   } catch {
     return {};

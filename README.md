@@ -152,12 +152,19 @@ Zotero 内部会把这段内容作为 Markdown 源文本保存；导入 Obsidian
 # 论文代码仓库解读报告
 
 ## 1. 论文与仓库基本信息
+
 ## 2. 工程整体结构
+
 ## 3. 模型架构代码解读
+
 ## 4. 训练流程代码解读
+
 ## 5. 论文创新点与代码实现对应关系
+
 ## 6. 数据流与调用链
+
 ## 7. 复现与阅读建议
+
 ## 8. 不确定性与未验证部分
 ```
 
@@ -178,22 +185,22 @@ Zotero 内部会把这段内容作为 Markdown 源文本保存；导入 Obsidian
 
 仓库分析相关工具包括：
 
-| 工具 | 作用 |
-|---|---|
+| 工具                         | 作用                                           |
+| ---------------------------- | ---------------------------------------------- |
 | `repo_import_github_archive` | 下载 GitHub archive，解压并建立 Repo Workspace |
-| `repo_get_workspace_status` | 查看当前论文是否已有 workspace |
-| `repo_get_manifest` | 获取工程 manifest 摘要 |
-| `repo_get_module_map` | 获取模块图、语言统计、roleGroups |
-| `repo_get_symbol_skeleton` | 获取重要文件符号骨架 |
-| `repo_search_files` | 按关键词和 role tag 搜索源码 |
-| `repo_read_file_with_lines` | 按真实行号读取指定文件或行段 |
-| `repo_read_related_files` | 按角色批量读取关键文件 |
-| `paper_build_context_digest` | 构建当前论文上下文摘要 |
-| `paper_get_context_digest` | 读取已保存论文 digest |
-| `paper_search_sections` | 搜索论文相关段落 |
-| `paper_read_section` | 读取论文指定章节 |
-| `analysis_save_report` | 保存代码分析报告 |
-| `analysis_get_saved_report` | 读取已保存报告 |
+| `repo_get_workspace_status`  | 查看当前论文是否已有 workspace                 |
+| `repo_get_manifest`          | 获取工程 manifest 摘要                         |
+| `repo_get_module_map`        | 获取模块图、语言统计、roleGroups               |
+| `repo_get_symbol_skeleton`   | 获取重要文件符号骨架                           |
+| `repo_search_files`          | 按关键词和 role tag 搜索源码                   |
+| `repo_read_file_with_lines`  | 按真实行号读取指定文件或行段                   |
+| `repo_read_related_files`    | 按角色批量读取关键文件                         |
+| `paper_build_context_digest` | 构建当前论文上下文摘要                         |
+| `paper_get_context_digest`   | 读取已保存论文 digest                          |
+| `paper_search_sections`      | 搜索论文相关段落                               |
+| `paper_read_section`         | 读取论文指定章节                               |
+| `analysis_save_report`       | 保存代码分析报告                               |
+| `analysis_get_saved_report`  | 读取已保存报告                                 |
 
 旧版 GitHub raw/tree 工具仍保留作为兼容能力，但主流程优先使用 Repo Workspace。
 
@@ -203,11 +210,11 @@ Zotero 内部会把这段内容作为 Markdown 源文本保存；导入 Obsidian
 
 主要本地文件：
 
-| 文件 | 内容 |
-|---|---|
-| `zotero-ai-sidebar-chat-history.json` | 每个 Zotero item 的聊天历史 |
+| 文件                                     | 内容                                                           |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| `zotero-ai-sidebar-chat-history.json`    | 每个 Zotero item 的聊天历史                                    |
 | `zotero-ai-sidebar-repo-workspaces.json` | Repo Workspace metadata、manifest、源码索引、论文 digest、报告 |
-| `zotero-ai-sidebar-code-analysis.json` | 旧版 code_* 工具的绑定和分析记录 |
+| `zotero-ai-sidebar-code-analysis.json`   | 旧版 code\_\* 工具的绑定和分析记录                             |
 
 Windows 下已使用平台路径分隔符拼接 Zotero profile 文件路径，避免 `NS_ERROR_FILE_UNRECOGNIZED_PATH`。
 
@@ -354,7 +361,7 @@ src/context/code-*                      # 旧版 GitHub raw/tree code_* 工具
 - 符号骨架提取。
 - 行号注入和截断策略。
 - Repo Workspace storage。
-- 旧版 code_* 工具。
+- 旧版 code\_\* 工具。
 - `Message.apiContent` 显示内容 / 模型内容分离。
 - Windows profile 路径拼接。
 - OpenAI provider 工具循环回归。

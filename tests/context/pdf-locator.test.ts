@@ -134,12 +134,10 @@ describe("pdf locator", () => {
             100,
             { hasEOL: true, width: 360 },
           ),
-          item(
-            "continues on the next selected line",
-            410,
-            80,
-            { hasEOL: true, width: 360 },
-          ),
+          item("continues on the next selected line", 410, 80, {
+            hasEOL: true,
+            width: 360,
+          }),
           item("and ends on the final selected line.", 410, 60, {
             width: 260,
           }),
@@ -455,7 +453,6 @@ describe("pdf locator", () => {
     expect(hit?.text).toBe("Our experiments show long- horizon skills.");
     expect(hit?.pageSentenceIndex).toBe(1);
   });
-
 });
 
 function item(
@@ -589,11 +586,11 @@ function readerWithProcessedPages(
   const app = options.noDocument
     ? { pdfViewer }
     : options.viewerDocumentOnly
-    ? { pdfViewer }
-    : {
-        pdfDocument,
-        pdfViewer,
-      };
+      ? { pdfViewer }
+      : {
+          pdfDocument,
+          pdfViewer,
+        };
   return {
     itemID: 2,
     _item: { id: 2, parentID: 1 },

@@ -1,4 +1,4 @@
-export const CACHE_PREFS_KEY = 'extensions.zotero-ai-sidebar.translateCache';
+export const CACHE_PREFS_KEY = "extensions.zotero-ai-sidebar.translateCache";
 export const MAX_CACHE_ENTRIES = 500;
 
 export interface CacheEntry {
@@ -36,11 +36,11 @@ function fnv1aHex64(input: string): string {
     h1 = Math.imul(h1 ^ c, 0x01000193) >>> 0;
     h2 = Math.imul(h2 ^ (c + 0x9e37), 0x01000193) >>> 0;
   }
-  return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
+  return h1.toString(16).padStart(8, "0") + h2.toString(16).padStart(8, "0");
 }
 
 function normalizeSentence(s: string): string {
-  return s.replace(/\s+/g, ' ').trim().toLowerCase();
+  return s.replace(/\s+/g, " ").trim().toLowerCase();
 }
 
 export function cacheKey(input: CacheKeyInput): string {
@@ -51,7 +51,7 @@ export function cacheKey(input: CacheKeyInput): string {
     input.model,
     input.thinking,
     input.ctxLevel,
-  ].join('|');
+  ].join("|");
   return fnv1aHex64(payload).slice(0, 16);
 }
 
@@ -60,14 +60,18 @@ export function loadCache(prefs: PrefsStore): TranslateCacheState {
   if (!raw) return { entries: {} };
   try {
     const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== 'object') return { entries: {} };
+    if (!parsed || typeof parsed !== "object") return { entries: {} };
     const entries = (parsed as { entries?: Record<string, unknown> }).entries;
-    if (!entries || typeof entries !== 'object') return { entries: {} };
+    if (!entries || typeof entries !== "object") return { entries: {} };
     const out: Record<string, CacheEntry> = {};
     for (const [k, v] of Object.entries(entries)) {
-      if (!v || typeof v !== 'object') continue;
+      if (!v || typeof v !== "object") continue;
       const e = v as Partial<CacheEntry>;
-      if (typeof e.text === 'string' && typeof e.model === 'string' && typeof e.createdAt === 'number') {
+      if (
+        typeof e.text === "string" &&
+        typeof e.model === "string" &&
+        typeof e.createdAt === "number"
+      ) {
         out[k] = { text: e.text, model: e.model, createdAt: e.createdAt };
       }
     }
@@ -92,14 +96,21 @@ function trimCache(state: TranslateCacheState): TranslateCacheState {
   return { entries: out };
 }
 
-export function getCachedTranslation(prefs: PrefsStore, key: string): CacheEntry | undefined {
+export function getCachedTranslation(
+  prefs: PrefsStore,
+  key: string,
+): CacheEntry | undefined {
   return loadCache(prefs).entries[key];
 }
 
 // Non-atomic load-modify-save. Safe here because writes are user-driven
 // (one click → one translate → one cache write), so concurrent writers
 // don't exist in the runtime model. Do not call from background timers.
-export function setCachedTranslation(prefs: PrefsStore, key: string, entry: CacheEntry): void {
+export function setCachedTranslation(
+  prefs: PrefsStore,
+  key: string,
+  entry: CacheEntry,
+): void {
   const state = loadCache(prefs);
   state.entries[key] = entry;
   saveCache(prefs, state);

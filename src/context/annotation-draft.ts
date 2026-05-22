@@ -18,8 +18,10 @@
 // system prompt is Chinese-first; if you change the marker you must also
 // update the prompt where it instructs the model to emit it.
 const SUGGESTION_HEADER = /^[ \t]*建议注释[：:][ \t]*(.*)$/m;
-const COLOR_LINE = /^[ \t]*(?:建议颜色|颜色|color)[：:][^\n#]*(#[0-9a-fA-F]{6})\b/i;
-const COLOR_INLINE = /[ \t]*(?:建议颜色|颜色|color)[：:][^\n#]*(#[0-9a-fA-F]{6})\b/i;
+const COLOR_LINE =
+  /^[ \t]*(?:建议颜色|颜色|color)[：:][^\n#]*(#[0-9a-fA-F]{6})\b/i;
+const COLOR_INLINE =
+  /[ \t]*(?:建议颜色|颜色|color)[：:][^\n#]*(#[0-9a-fA-F]{6})\b/i;
 const BULLET_LINE = /^[ \t]*[-•·*][ \t]+(.+)$/;
 
 export interface ParsedAnnotationSuggestion {
@@ -28,8 +30,10 @@ export interface ParsedAnnotationSuggestion {
   color: string | null;
 }
 
-export function parseAnnotationSuggestion(content: string): ParsedAnnotationSuggestion {
-  const text = content ?? '';
+export function parseAnnotationSuggestion(
+  content: string,
+): ParsedAnnotationSuggestion {
+  const text = content ?? "";
   const lastIndex = findLastHeaderIndex(text);
   if (lastIndex < 0) return { body: text, comment: null, color: null };
 
@@ -39,7 +43,7 @@ export function parseAnnotationSuggestion(content: string): ParsedAnnotationSugg
   if (!match) return { body: text, comment: null, color: null };
 
   const headerInline = match[1].trim();
-  const blockBody = afterHeader.slice(match[0].length).replace(/^\r?\n/, '');
+  const blockBody = afterHeader.slice(match[0].length).replace(/^\r?\n/, "");
   const { comment, color } = extractCommentAndColor(headerInline, blockBody);
   return { body: trimTrailingBlankLines(beforeHeader), comment, color };
 }
@@ -68,7 +72,7 @@ function extractCommentAndColor(
   const bullets = collectBullets(block.text);
   if (bullets.length > 0) {
     return {
-      comment: bullets.map((line) => `- ${line}`).join('\n'),
+      comment: bullets.map((line) => `- ${line}`).join("\n"),
       color: block.color ?? inline.color,
     };
   }
@@ -76,7 +80,7 @@ function extractCommentAndColor(
   const comment = [inline.text, block.text]
     .map((s) => s.trim())
     .filter(Boolean)
-    .join('\n')
+    .join("\n")
     .trim();
   return { comment: comment || null, color: block.color ?? inline.color };
 }
@@ -103,14 +107,17 @@ function stripColorLines(text: string): { text: string; color: string | null } {
     }
     kept.push(raw);
   }
-  return { text: kept.join('\n'), color };
+  return { text: kept.join("\n"), color };
 }
 
-function stripInlineColor(text: string): { text: string; color: string | null } {
+function stripInlineColor(text: string): {
+  text: string;
+  color: string | null;
+} {
   const match = text.match(COLOR_INLINE);
   if (!match) return { text, color: null };
   return {
-    text: text.replace(COLOR_INLINE, '').trim(),
+    text: text.replace(COLOR_INLINE, "").trim(),
     color: normalizeColor(match[1]),
   };
 }
@@ -120,5 +127,5 @@ function normalizeColor(value: string): string {
 }
 
 function trimTrailingBlankLines(text: string): string {
-  return text.replace(/\s+$/u, '');
+  return text.replace(/\s+$/u, "");
 }

@@ -1,8 +1,5 @@
 import { unzipSync } from "fflate";
-import {
-  classifyRepoFile,
-  normalizeRepoPath,
-} from "./file-classifier";
+import { classifyRepoFile, normalizeRepoPath } from "./file-classifier";
 import type { RepoContextPolicy } from "./repo-policy";
 import {
   repoError,
@@ -68,8 +65,12 @@ export function buildRepoWorkspaceFromArchive(
           Math.min(input.policy.maxIndexedFileChars, remaining),
         );
         workspaceFile.content = indexed;
-        workspaceFile.contentTruncated = indexed.length < classified.text.length;
-        workspaceFile.symbolSkeleton = extractSymbolSkeleton(meta.path, indexed);
+        workspaceFile.contentTruncated =
+          indexed.length < classified.text.length;
+        workspaceFile.symbolSkeleton = extractSymbolSkeleton(
+          meta.path,
+          indexed,
+        );
         indexedTextFiles += 1;
         totalTextBytes += indexed.length;
       } else {
@@ -80,7 +81,8 @@ export function buildRepoWorkspaceFromArchive(
     files[meta.path] = workspaceFile;
   }
   const sortedManifest = manifest.sort(
-    (a, b) => b.importanceScore - a.importanceScore || a.path.localeCompare(b.path),
+    (a, b) =>
+      b.importanceScore - a.importanceScore || a.path.localeCompare(b.path),
   );
   const summary = summarizeWorkspace(
     workspaceId,
@@ -127,7 +129,9 @@ export function workspaceSummary(workspace: RepoWorkspace) {
 function stripArchiveTopLevel(
   entries: Record<string, Uint8Array>,
 ): Record<string, Uint8Array> {
-  const paths = Object.keys(entries).filter((path) => path && !path.endsWith("/"));
+  const paths = Object.keys(entries).filter(
+    (path) => path && !path.endsWith("/"),
+  );
   const firstSegments = new Set(paths.map((path) => path.split("/")[0]));
   if (firstSegments.size !== 1) return entries;
   const prefix = `${Array.from(firstSegments)[0]}/`;

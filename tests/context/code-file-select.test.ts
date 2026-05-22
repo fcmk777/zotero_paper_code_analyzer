@@ -19,13 +19,15 @@ describe("code file selection", () => {
     ]);
 
     const paths = selected.map((file) => file.path);
-    expect(new Set(paths.slice(0, 5))).toEqual(new Set([
-      "model.py",
-      "train.py",
-      "loss.py",
-      "dataset.py",
-      "src/models/foo.py",
-    ]));
+    expect(new Set(paths.slice(0, 5))).toEqual(
+      new Set([
+        "model.py",
+        "train.py",
+        "loss.py",
+        "dataset.py",
+        "src/models/foo.py",
+      ]),
+    );
     expect(selected[0].score).toBeGreaterThan(selected.at(-1)!.score);
   });
 
@@ -61,11 +63,14 @@ describe("code file selection", () => {
 
 describe("line numbering and source formatting", () => {
   it("injects stable line numbers", () => {
-    const text = Array.from({ length: 10 }, (_, index) => `line ${index + 1}`).join("\n");
+    const text = Array.from(
+      { length: 10 },
+      (_, index) => `line ${index + 1}`,
+    ).join("\n");
     const numbered = addLineNumbers(text);
 
-    expect(numbered.split("\n")[0]).toMatch(/^   1 \| line 1$/);
-    expect(numbered.split("\n")[9]).toMatch(/^  10 \| line 10$/);
+    expect(numbered.split("\n")[0]).toMatch(/^ {3}1 \| line 1$/);
+    expect(numbered.split("\n")[9]).toMatch(/^ {2}10 \| line 10$/);
   });
 
   it("marks truncation and respects per-file and total budgets", () => {
@@ -84,7 +89,9 @@ describe("line numbering and source formatting", () => {
     expect(result.files[0].truncated).toBe(true);
     expect(result.files[0].chars).toBeLessThanOrEqual(50);
     expect(result.totalChars).toBeLessThanOrEqual(80);
-    expect(result.files.every((file) => file.contentMarkdown.endsWith("```"))).toBe(true);
+    expect(
+      result.files.every((file) => file.contentMarkdown.endsWith("```")),
+    ).toBe(true);
   });
 
   it("handles empty files deterministically", () => {
